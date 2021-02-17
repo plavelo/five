@@ -1,3 +1,4 @@
+mod bus;
 mod cpu;
 pub mod emulator;
 mod isa;

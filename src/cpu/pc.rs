@@ -1,5 +1,5 @@
 pub struct ProgramCounter {
-    pc: u64,
+    pc: u32,
 }
 
 #[allow(dead_code)]
@@ -8,7 +8,7 @@ impl ProgramCounter {
         Self { pc: 0 }
     }
 
-    pub fn read(&self) -> u64 {
+    pub fn read(&self) -> u32 {
         self.pc
     }
 
@@ -16,8 +16,12 @@ impl ProgramCounter {
         self.pc += 4;
     }
 
-    pub fn jump(&mut self, relative_address: i16) {
-        self.pc = (self.pc as i64 + relative_address as i64) as u64;
+    pub fn jump(&mut self, address: u32) {
+        self.pc = address;
+    }
+
+    pub fn jumpr(&mut self, relative_address: i32) {
+        self.pc = (self.pc as i32 + relative_address) as u32;
     }
 
     pub fn reset(&mut self) {
