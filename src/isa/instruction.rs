@@ -1,3 +1,4 @@
+const MASK_3BIT: u32 = 0b111;
 const MASK_5BIT: u32 = 0b11111;
 const MASK_7BIT: u32 = 0b1111111;
 
@@ -41,7 +42,7 @@ pub enum Instruction {
 impl Instruction {
     pub fn decode(instruction: u32) -> Option<Self> {
         let opcode = instruction & MASK_7BIT;
-        let funct3 = (instruction >> 12) & MASK_5BIT;
+        let funct3 = (instruction >> 12) & MASK_3BIT;
         let funct7 = (instruction >> 25) & MASK_7BIT;
         match opcode {
             0b0110111 => Self::decode_u(Some(OpcodeU::Lui), instruction),
