@@ -1,13 +1,19 @@
+use crate::emulator::memory::MEMORY_BASE_ADDRESS;
+
 pub struct ProgramCounter {
     pc: u32,
 }
 
+impl Default for ProgramCounter {
+    fn default() -> Self {
+        Self {
+            pc: MEMORY_BASE_ADDRESS,
+        }
+    }
+}
+
 #[allow(dead_code)]
 impl ProgramCounter {
-    pub fn new() -> Self {
-        Self { pc: 0 }
-    }
-
     pub fn read(&self) -> u32 {
         self.pc
     }
@@ -25,6 +31,6 @@ impl ProgramCounter {
     }
 
     pub fn reset(&mut self) {
-        self.pc = 0;
+        self.pc = MEMORY_BASE_ADDRESS;
     }
 }

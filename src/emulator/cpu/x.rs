@@ -1,4 +1,4 @@
-use crate::memory::MEMORY_SIZE;
+use crate::emulator::memory::MEMORY_SIZE;
 
 pub const ZERO: usize = 0;
 #[allow(dead_code)]
@@ -65,17 +65,19 @@ pub const T5: usize = 30;
 #[allow(dead_code)]
 pub const T6: usize = 31;
 
-pub struct Register {
+pub struct IntegerRegister {
     x: [u32; 32],
 }
 
-impl Register {
-    pub fn new() -> Self {
+impl Default for IntegerRegister {
+    fn default() -> Self {
         let mut x = [0; 32];
         x[SP] = MEMORY_SIZE;
         Self { x }
     }
+}
 
+impl IntegerRegister {
     pub fn readi(&self, register: usize) -> i32 {
         self.x[register] as i32
     }

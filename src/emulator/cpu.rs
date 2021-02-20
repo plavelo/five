@@ -1,49 +1,61 @@
+pub mod csr;
 pub mod pc;
-pub mod register;
+pub mod x;
 
 use crate::{
-    bus::SystemBus,
-    cpu::{pc::ProgramCounter, register::Register},
+    emulator::{
+        bus::SystemBus,
+        cpu::{
+            csr::ControlAndStatusRegister,
+            pc::ProgramCounter,
+            x::{IntegerRegister, GP},
+        },
+    },
     isa::instruction::{Instruction, OpcodeB, OpcodeI, OpcodeJ, OpcodeR, OpcodeS, OpcodeU},
-    memory::Memory,
 };
 
 const MASK_5BIT: u32 = 0b11111;
+const MASK_12BIT: u32 = 0b111111111111;
 
 #[allow(dead_code)]
+#[derive(Default)]
 pub struct Cpu {
-    register: Register,
+    x: IntegerRegister,
     pc: ProgramCounter,
-    bus: SystemBus,
+    csr: ControlAndStatusRegister,
+    pub bus: SystemBus,
 }
 
 impl Cpu {
-    pub fn new() -> Self {
-        Self {
-            register: Register::new(),
-            pc: ProgramCounter::new(),
-            bus: SystemBus::new(),
-        }
-    }
-
-    pub fn cycle(&mut self) {
-        while self.pc.read() < self.bus.memory.size() {
+    pub fn run(&mut self) -> u32 {
+        let mut counter = 0;
+        while self.pc.read() < self.bus.memory.size() && !self.bus.is_finished && counter < 65536 {
             let address = self.pc.read();
-            let fetched = self.bus.memory.fetch(address);
+            let fetched = self.bus.load32(address);
             let decoded = Instruction::decode(fetched);
             if let Some(instruction) = decoded {
                 execute(
                     instruction,
                     &mut self.pc,
-                    &mut self.register,
-                    &mut self.bus.memory,
+                    &mut self.x,
+                    &mut self.csr,
+                    &mut self.bus,
                 )
             }
+            self.pc.increment();
+            counter += 1;
         }
+        self.x.readu(GP)
     }
 }
 
-fn execute(instruction: Instruction, pc: &mut ProgramCounter, x: &mut Register, mem: &mut Memory) {
+fn execute(
+    instruction: Instruction,
+    pc: &mut ProgramCounter,
+    x: &mut IntegerRegister,
+    csr: &mut ControlAndStatusRegister,
+    bus: &mut SystemBus,
+) {
     match instruction {
         Instruction::TypeR {
             opcode,
@@ -84,31 +96,31 @@ fn execute(instruction: Instruction, pc: &mut ProgramCounter, x: &mut Register, 
             }
             OpcodeI::Fence => {}  // not yet supported
             OpcodeI::FenceI => {} // not yet supported
-            OpcodeI::Ecall => panic!("not implemented"),
-            OpcodeI::Ebreak => panic!("not implemented"),
-            OpcodeI::Csrrw => panic!("not implemented"),
-            OpcodeI::Csrrs => panic!("not implemented"),
-            OpcodeI::Csrrc => panic!("not implemented"),
-            OpcodeI::Csrrwi => panic!("not implemented"),
-            OpcodeI::Csrrsi => panic!("not implemented"),
-            OpcodeI::Csrrci => panic!("not implemented"),
+            OpcodeI::Ecall => {}  // not yet supported
+            OpcodeI::Ebreak => {} // not yet supported
+            OpcodeI::Csrrw => x.writeu(rd, csr.csrrw(imm & MASK_12BIT, x.readu(rs1))),
+            OpcodeI::Csrrs => x.writeu(rd, csr.csrrs(imm & MASK_12BIT, x.readu(rs1))),
+            OpcodeI::Csrrc => x.writeu(rd, csr.csrrc(imm & MASK_12BIT, x.readu(rs1))),
+            OpcodeI::Csrrwi => x.writeu(rd, csr.csrrw(imm & MASK_12BIT, rs1 as u32)),
+            OpcodeI::Csrrsi => x.writeu(rd, csr.csrrs(imm & MASK_12BIT, rs1 as u32)),
+            OpcodeI::Csrrci => x.writeu(rd, csr.csrrc(imm & MASK_12BIT, rs1 as u32)),
             OpcodeI::Lb => x.writei(
                 rd,
-                mem.load8(x.readi(rs1).wrapping_add(imm as i32) as u32) as i32,
+                bus.load8(x.readi(rs1).wrapping_add(imm as i32) as u32) as i32,
             ),
             OpcodeI::Lh => x.writei(
                 rd,
-                mem.load16(x.readi(rs1).wrapping_add(imm as i32) as u32) as i32,
+                bus.load16(x.readi(rs1).wrapping_add(imm as i32) as u32) as i32,
             ),
             OpcodeI::Lbu => x.writeu(
                 rd,
-                mem.load8(x.readi(rs1).wrapping_add(imm as i32) as u32) as u32,
+                bus.load8(x.readi(rs1).wrapping_add(imm as i32) as u32) as u32,
             ),
             OpcodeI::Lhu => x.writeu(
                 rd,
-                mem.load16(x.readi(rs1).wrapping_add(imm as i32) as u32) as u32,
+                bus.load16(x.readi(rs1).wrapping_add(imm as i32) as u32) as u32,
             ),
-            OpcodeI::Lw => x.writeu(rd, mem.load32(x.readi(rs1).wrapping_add(imm as i32) as u32)),
+            OpcodeI::Lw => x.writeu(rd, bus.load32(x.readi(rs1).wrapping_add(imm as i32) as u32)),
         },
         Instruction::TypeS {
             opcode,
@@ -116,9 +128,9 @@ fn execute(instruction: Instruction, pc: &mut ProgramCounter, x: &mut Register, 
             rs2,
             imm,
         } => match opcode {
-            OpcodeS::Sb => mem.store8((x.readi(rs1) + imm as i32) as u32, x.readu(rs2) as u8),
-            OpcodeS::Sh => mem.store16((x.readi(rs1) + imm as i32) as u32, x.readu(rs2) as u16),
-            OpcodeS::Sw => mem.store32((x.readi(rs1) + imm as i32) as u32, x.readu(rs2)),
+            OpcodeS::Sb => bus.store8((x.readi(rs1) + imm as i32) as u32, x.readu(rs2) as u8),
+            OpcodeS::Sh => bus.store16((x.readi(rs1) + imm as i32) as u32, x.readu(rs2) as u16),
+            OpcodeS::Sw => bus.store32((x.readi(rs1) + imm as i32) as u32, x.readu(rs2)),
         },
         Instruction::TypeB {
             opcode,
