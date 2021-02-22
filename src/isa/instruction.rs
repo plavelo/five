@@ -2,6 +2,7 @@ const MASK_3BIT: u32 = 0b111;
 const MASK_5BIT: u32 = 0b11111;
 const MASK_7BIT: u32 = 0b1111111;
 
+#[derive(Debug, PartialEq)]
 pub enum Instruction {
     TypeR {
         opcode: OpcodeR,
@@ -199,7 +200,7 @@ impl Instruction {
             let imm = ((instruction & 0x80000000) as i32 >> 19) as u32
                 | (instruction & 0x80) << 4
                 | (instruction >> 20) & 0x7e0
-                | (instruction >> 8) & 0x1e;
+                | (instruction >> 7) & 0x1e;
             Self::TypeB {
                 opcode: o,
                 rs1,
@@ -229,6 +230,7 @@ impl Instruction {
     }
 }
 
+#[derive(Debug, PartialEq)]
 pub enum OpcodeR {
     Sll,
     Srl,
@@ -242,6 +244,7 @@ pub enum OpcodeR {
     Sltu,
 }
 
+#[derive(Debug, PartialEq)]
 pub enum OpcodeI {
     Slli,
     Srli,
@@ -270,12 +273,14 @@ pub enum OpcodeI {
     Lw,
 }
 
+#[derive(Debug, PartialEq)]
 pub enum OpcodeS {
     Sb,
     Sh,
     Sw,
 }
 
+#[derive(Debug, PartialEq)]
 pub enum OpcodeB {
     Beq,
     Bne,
@@ -285,11 +290,113 @@ pub enum OpcodeB {
     Bgeu,
 }
 
+#[derive(Debug, PartialEq)]
 pub enum OpcodeU {
     Lui,
     Auipc,
 }
 
+#[derive(Debug, PartialEq)]
 pub enum OpcodeJ {
     Jal,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn decode_lui_ok() {
+        let inst = 0b00000000010101010101_00101_0110111;
+        assert_eq!(
+            Instruction::decode(inst).unwrap(),
+            Instruction::TypeU {
+                opcode: OpcodeU::Lui,
+                rd: 0b00101,
+                imm: 0b010101010101_00000_0000000,
+            }
+        );
+    }
+
+    #[test]
+    fn decode_auipc_ok() {
+        let inst = 0b00000000010101010101_00101_0010111;
+        assert_eq!(
+            Instruction::decode(inst).unwrap(),
+            Instruction::TypeU {
+                opcode: OpcodeU::Auipc,
+                rd: 0b00101,
+                imm: 0b010101010101_00000_0000000,
+            }
+        );
+    }
+
+    #[test]
+    fn decode_jal_ok() {
+        let inst = 0b1_0000000010_1_01010101_00101_1101111;
+        assert_eq!(
+            Instruction::decode(inst).unwrap(),
+            Instruction::TypeJ {
+                opcode: OpcodeJ::Jal,
+                rd: 0b00101,
+                imm: 0b11111111111_1_01010101_1_0000000010_0,
+            }
+        );
+    }
+
+    #[test]
+    fn decode_jalr_ok() {
+        let inst = 0b100000000101_01010_000_00101_1100111;
+        assert_eq!(
+            Instruction::decode(inst).unwrap(),
+            Instruction::TypeI {
+                opcode: OpcodeI::Jalr,
+                rs1: 0b01010,
+                rd: 0b00101,
+                imm: 0b11111111111111111111100000000101,
+            }
+        );
+    }
+
+    #[test]
+    fn decode_beq_ok() {
+        let inst = 0b1010101_00101_01010_000_10101_1100011;
+        assert_eq!(
+            Instruction::decode(inst).unwrap(),
+            Instruction::TypeB {
+                opcode: OpcodeB::Beq,
+                rs1: 0b01010,
+                rs2: 0b00101,
+                imm: 0b11111111111111111111_1_010101_1010_0,
+            }
+        );
+    }
+
+    #[test]
+    fn decode_sb_ok() {
+        let inst = 0b1010101_00101_01010_000_10101_0100011;
+        assert_eq!(
+            Instruction::decode(inst).unwrap(),
+            Instruction::TypeS {
+                opcode: OpcodeS::Sb,
+                rs1: 0b01010,
+                rs2: 0b00101,
+                imm: 0b11111111111111111111_1010101_10101,
+            }
+        );
+    }
+
+    #[test]
+    fn decode_add_ok() {
+        let inst = 0b0000000_00101_01010_000_10101_0110011;
+        assert_eq!(
+            Instruction::decode(inst).unwrap(),
+            Instruction::TypeR {
+                opcode: OpcodeR::Add,
+                rs1: 0b01010,
+                rs2: 0b00101,
+                rd: 0b10101,
+            }
+        );
+    }
 }

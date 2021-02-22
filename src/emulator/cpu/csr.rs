@@ -24,7 +24,6 @@ impl ControlAndStatusRegister {
         if self.mcsr.contains(address) {
             return self.mcsr.csrrw(address, value);
         }
-        println!("address: {}", address);
         panic!("todo: address not found.");
     }
 
@@ -38,7 +37,6 @@ impl ControlAndStatusRegister {
         if self.mcsr.contains(address) {
             return self.mcsr.csrrs(address, value);
         }
-        println!("address: {}", address);
         panic!("todo: address not found.");
     }
 
@@ -52,7 +50,6 @@ impl ControlAndStatusRegister {
         if self.mcsr.contains(address) {
             return self.mcsr.csrrc(address, value);
         }
-        println!("address: {}", address);
         panic!("todo: address not found.");
     }
 }
