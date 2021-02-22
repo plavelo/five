@@ -29,6 +29,7 @@ impl ProgramCounter {
         self.pc = (self.pc as i64 + relative_address as i64) as u32;
     }
 
+    #[allow(dead_code)]
     pub fn reset(&mut self) {
         self.pc = MEMORY_BASE_ADDRESS;
     }
