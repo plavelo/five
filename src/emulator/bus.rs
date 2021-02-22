@@ -1,6 +1,4 @@
-use crate::emulator::memory::{Memory, MEMORY_BASE_ADDRESS};
-
-const RESULT_ADDRESS: u32 = MEMORY_BASE_ADDRESS + 0x001000;
+use crate::emulator::memory::Memory;
 
 pub enum Xlen {
     Byte = 1,
@@ -11,17 +9,11 @@ pub enum Xlen {
 #[derive(Default)]
 pub struct SystemBus {
     pub memory: Memory,
-    pub result: u32,
-    pub is_finished: bool,
 }
 
 impl SystemBus {
     pub fn load(&self, address: u32, xlen: Xlen) -> u32 {
-        if address == RESULT_ADDRESS {
-            self.result
-        } else {
-            self.memory.load(address, xlen)
-        }
+        self.memory.load(address, xlen)
     }
 
     pub fn load8(&self, address: u32) -> u8 {
@@ -37,12 +29,7 @@ impl SystemBus {
     }
 
     pub fn store(&mut self, address: u32, value: u32, xlen: Xlen) {
-        if address == RESULT_ADDRESS {
-            self.result = value;
-            self.is_finished = true;
-        } else {
-            self.memory.store(address, value, xlen);
-        }
+        self.memory.store(address, value, xlen);
     }
 
     pub fn store8(&mut self, address: u32, value: u8) {
