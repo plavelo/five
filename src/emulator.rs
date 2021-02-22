@@ -12,7 +12,6 @@ pub struct Emulator {
     cpu: Cpu,
 }
 
-#[allow(dead_code)]
 impl Emulator {
     pub fn load(&mut self, file: File) -> Result<()> {
         let buffer = BufReader::new(file);

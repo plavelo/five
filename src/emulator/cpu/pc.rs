@@ -12,7 +12,6 @@ impl Default for ProgramCounter {
     }
 }
 
-#[allow(dead_code)]
 impl ProgramCounter {
     pub fn read(&self) -> u32 {
         self.pc

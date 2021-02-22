@@ -16,7 +16,6 @@ use crate::{
     isa::instruction::Instruction,
 };
 
-#[allow(dead_code)]
 #[derive(Default)]
 pub struct Cpu {
     x: IntegerRegister,
