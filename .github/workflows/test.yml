@@ -42,9 +42,9 @@ jobs:
           args: -- -D warnings
       - uses: actions-rs/cargo@v1
         with:
-          command: test
-          args: --release --all-features
+          command: make
+          args: buildtest
       - uses: actions-rs/cargo@v1
         with:
-          command: make
-          args: alltest
+          command: test
+          args: --release --all-features
