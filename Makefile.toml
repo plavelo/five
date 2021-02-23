@@ -5,20 +5,20 @@ TESTS_DIR = "${CARGO_MAKE_WORKING_DIRECTORY}/riscv-tests/isa/"
 command = "cargo"
 args = ["build", "-q", "--release", "--manifest-path", "cli/Cargo.toml"]
 
-[tasks.pretestcli]
+[tasks.pretest]
 script = [
     "git submodule update --init --recursive riscv-tests",
     "cd ${TESTS_DIR}",
     "make -j8 -s",
-    "find . -maxdepth 1 -not -type d -name 'rv*' -printf '%f\n' | egrep -v '\\.dump$|\\.hex$|\\.bin$' | xargs -I {} riscv64-unknown-elf-objcopy -O binary {} {}.bin",
+    "find . -maxdepth 1 -not -type d -name 'rv*' -printf '%f\n' | grep -v '\\.' | xargs -I {} riscv64-unknown-elf-objcopy -O binary {} {}.bin",
 ]
 
-[tasks.testcli]
-dependencies = ["pretestcli", "buildcli"]
+[tasks.alltest]
+dependencies = ["pretest", "buildcli"]
 script = [
     "find ./riscv-tests/isa/ -maxdepth 1 -not -type d -name 'rv32ui-p*.bin' -printf '%f\n' | xargs -I {} ./cli/target/release/cli ./riscv-tests/isa/{}"
 ]
 
-[tasks.run]
+[tasks.cli]
 command = "cargo"
 args = ["run", "-q", "--manifest-path", "cli/Cargo.toml", "${@}"]
