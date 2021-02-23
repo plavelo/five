@@ -25,7 +25,8 @@ pub fn execute_rv32i(
     x: &mut IntegerRegister,
     csr: &mut ControlAndStatusRegister,
     bus: &mut SystemBus,
-) {
+) -> bool {
+    let mut jumped = false;
     match instruction {
         Instruction::TypeR {
             opcode,
@@ -63,6 +64,7 @@ pub fn execute_rv32i(
                 let last = pc.read();
                 pc.jump((x.readi(rs1).wrapping_add(imm as i32) & !1) as u32);
                 x.writeu(rd, last + 4);
+                jumped = true;
             }
             Rv32iOpcodeI::Fence => {}  // not yet supported
             Rv32iOpcodeI::FenceI => {} // not yet supported
@@ -115,31 +117,37 @@ pub fn execute_rv32i(
             Rv32iOpcodeB::Beq => {
                 if x.readu(rs1) == x.readu(rs2) {
                     pc.jumpr(imm as i32);
+                    jumped = true;
                 }
             }
             Rv32iOpcodeB::Bne => {
                 if x.readu(rs1) != x.readu(rs2) {
                     pc.jumpr(imm as i32);
+                    jumped = true;
                 }
             }
             Rv32iOpcodeB::Blt => {
                 if x.readi(rs1) < x.readi(rs2) {
                     pc.jumpr(imm as i32);
+                    jumped = true;
                 }
             }
             Rv32iOpcodeB::Bge => {
                 if x.readi(rs1) >= x.readi(rs2) {
                     pc.jumpr(imm as i32);
+                    jumped = true;
                 }
             }
             Rv32iOpcodeB::Bltu => {
                 if x.readu(rs1) < x.readu(rs2) {
                     pc.jumpr(imm as i32);
+                    jumped = true;
                 }
             }
             Rv32iOpcodeB::Bgeu => {
                 if x.readu(rs1) >= x.readu(rs2) {
                     pc.jumpr(imm as i32);
+                    jumped = true;
                 }
             }
         },
@@ -151,7 +159,9 @@ pub fn execute_rv32i(
             Rv32iOpcodeJ::Jal => {
                 x.writeu(rd, pc.read() + 4);
                 pc.jumpr(imm as i32);
+                jumped = true;
             }
         },
     }
+    jumped
 }

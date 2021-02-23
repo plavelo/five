@@ -25,7 +25,7 @@ pub fn execute_privileged(
     _: &mut IntegerRegister,
     _: &mut ControlAndStatusRegister,
     _: &mut SystemBus,
-) {
+) -> bool {
     if let Instruction::TypeR {
         opcode,
         rs1: _,
@@ -41,4 +41,5 @@ pub fn execute_privileged(
             PrivilegedOpcodeR::SfenceVma => {} // not yet supported
         }
     }
+    false
 }
