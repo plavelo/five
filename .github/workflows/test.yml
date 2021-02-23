@@ -22,8 +22,7 @@ jobs:
             ~/.cargo/git
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-      - name: download riscv-toolchain
-        uses: teddyking/dependency-action@master
+      - uses: teddyking/dependency-action@master
         with: https://static.dev.sifive.com/dev-tools/riscv64-unknown-elf-gcc-8.1.0-2019.01.0-x86_64-linux-ubuntu14.tar.gz
       - name: add riscv-toolchain to path
         run: echo "$GITHUB_WORKSPACE/riscv64-unknown-elf-gcc-8.1.0-2019.01.0-x86_64-linux-ubuntu14/bin" >> $GITHUB_PATH
