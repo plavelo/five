@@ -31,6 +31,7 @@ jobs:
         with:
           crate: cargo-make
           version: latest
+          use-tool-cache: true
       - uses: actions-rs/cargo@v1
         with:
           command: fmt
