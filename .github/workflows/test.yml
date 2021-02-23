@@ -22,13 +22,8 @@ jobs:
             ~/.cargo/git
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-      - uses: wei/curl@master
-        with:
-          args: -s -o toolchain.tar.gz https://static.dev.sifive.com/dev-tools/riscv64-unknown-elf-gcc-8.1.0-2019.01.0-x86_64-linux-ubuntu14.tar.gz
-      - name: extract riscv-toolchain
-        run: |
-          tar -xfz toolchain.tar.gz --strip-components 1
-          echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
+      - name: download riscv-toolchain
+        run: curl -s -o toolchain.tar.gz https://static.dev.sifive.com/dev-tools/riscv64-unknown-elf-gcc-8.1.0-2019.01.0-x86_64-linux-ubuntu14.tar.gz && tar -xfz toolchain.tar.gz --strip-components 1 && echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
