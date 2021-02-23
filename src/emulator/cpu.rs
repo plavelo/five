@@ -1,19 +1,21 @@
 mod csr;
+mod decoder;
 mod executor;
 mod pc;
 mod x;
 
-use crate::{
-    emulator::{
-        bus::SystemBus,
-        cpu::{
-            csr::ControlAndStatusRegister,
-            executor::{privileged::execute_privileged, rv32i::execute_rv32i},
-            pc::ProgramCounter,
-            x::{IntegerRegister, GP},
+use crate::emulator::{
+    bus::SystemBus,
+    cpu::{
+        csr::ControlAndStatusRegister,
+        decoder::{
+            privileged::PrivilegedInstructionDecoder, rv32i::Rv32iInstructionDecoder,
+            InstructionDecoder,
         },
+        executor::{privileged::execute_privileged, rv32i::execute_rv32i},
+        pc::ProgramCounter,
+        x::{IntegerRegister, GP},
     },
-    isa::instruction::Instruction,
 };
 
 #[derive(Default)]
@@ -30,21 +32,10 @@ impl Cpu {
             let address = self.pc.read();
             let fetched = self.bus.load32(address);
 
-            let decoded = Instruction::decode(fetched);
-
-            if let Some(instruction) = decoded {
-                match instruction {
-                    Instruction::Privileged(i) => execute_privileged(
-                        i,
-                        &mut self.pc,
-                        &mut self.x,
-                        &mut self.csr,
-                        &mut self.bus,
-                    ),
-                    Instruction::Rv32i(i) => {
-                        execute_rv32i(i, &mut self.pc, &mut self.x, &mut self.csr, &mut self.bus)
-                    }
-                }
+            if let Some(i) = PrivilegedInstructionDecoder::decode(fetched) {
+                execute_privileged(i, &mut self.pc, &mut self.x, &mut self.csr, &mut self.bus)
+            } else if let Some(i) = Rv32iInstructionDecoder::decode(fetched) {
+                execute_rv32i(i, &mut self.pc, &mut self.x, &mut self.csr, &mut self.bus)
             } else {
                 break;
             }
