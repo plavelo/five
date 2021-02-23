@@ -3,22 +3,31 @@ use crate::{
         bus::SystemBus,
         cpu::{csr::ControlAndStatusRegister, pc::ProgramCounter, x::IntegerRegister},
     },
-    isa::instruction::rv32i::{
-        Rv32iInstruction, Rv32iOpcodeB, Rv32iOpcodeI, Rv32iOpcodeJ, Rv32iOpcodeR, Rv32iOpcodeS,
-        Rv32iOpcodeU,
+    isa::instruction::{
+        rv32i::{
+            Rv32iOpcodeB, Rv32iOpcodeI, Rv32iOpcodeJ, Rv32iOpcodeR, Rv32iOpcodeS, Rv32iOpcodeU,
+        },
+        Instruction,
     },
     MASK_12BIT, MASK_5BIT,
 };
 
 pub fn execute_rv32i(
-    instruction: Rv32iInstruction,
+    instruction: Instruction<
+        Rv32iOpcodeR,
+        Rv32iOpcodeI,
+        Rv32iOpcodeS,
+        Rv32iOpcodeB,
+        Rv32iOpcodeU,
+        Rv32iOpcodeJ,
+    >,
     pc: &mut ProgramCounter,
     x: &mut IntegerRegister,
     csr: &mut ControlAndStatusRegister,
     bus: &mut SystemBus,
 ) {
     match instruction {
-        Rv32iInstruction::TypeR {
+        Instruction::TypeR {
             opcode,
             rs1,
             rs2,
@@ -35,7 +44,7 @@ pub fn execute_rv32i(
             Rv32iOpcodeR::Slt => x.writeu(rd, if x.readi(rs1) < x.readi(rs2) { 1 } else { 0 }),
             Rv32iOpcodeR::Sltu => x.writeu(rd, if x.readu(rs1) < x.readu(rs2) { 1 } else { 0 }),
         },
-        Rv32iInstruction::TypeI {
+        Instruction::TypeI {
             opcode,
             rs1,
             rd,
@@ -85,7 +94,7 @@ pub fn execute_rv32i(
                 x.writeu(rd, bus.load32(x.readi(rs1).wrapping_add(imm as i32) as u32))
             }
         },
-        Rv32iInstruction::TypeS {
+        Instruction::TypeS {
             opcode,
             rs1,
             rs2,
@@ -97,7 +106,7 @@ pub fn execute_rv32i(
             }
             Rv32iOpcodeS::Sw => bus.store32((x.readi(rs1) + imm as i32) as u32, x.readu(rs2)),
         },
-        Rv32iInstruction::TypeB {
+        Instruction::TypeB {
             opcode,
             rs1,
             rs2,
@@ -134,11 +143,11 @@ pub fn execute_rv32i(
                 }
             }
         },
-        Rv32iInstruction::TypeU { opcode, rd, imm } => match opcode {
+        Instruction::TypeU { opcode, rd, imm } => match opcode {
             Rv32iOpcodeU::Lui => x.writeu(rd, imm),
             Rv32iOpcodeU::Auipc => x.writeu(rd, pc.read().wrapping_add(imm)),
         },
-        Rv32iInstruction::TypeJ { opcode, rd, imm } => match opcode {
+        Instruction::TypeJ { opcode, rd, imm } => match opcode {
             Rv32iOpcodeJ::Jal => {
                 x.writeu(rd, pc.read() + 4);
                 pc.jumpr(imm as i32);
