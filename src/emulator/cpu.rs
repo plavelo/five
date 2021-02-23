@@ -29,15 +29,24 @@ pub struct Cpu {
 impl Cpu {
     pub fn run(&mut self) -> u32 {
         while self.pc.read() < self.bus.memory.size() {
+            // read an address from the pc
             let address = self.pc.read();
+            // fetch an instruction
             let instruction = self.bus.load32(address);
-            if let Some(i) = PrivilegedInstructionDecoder::decode(instruction) {
+            // decode and execute the instruction
+            let jumped = if let Some(i) = PrivilegedInstructionDecoder::decode(instruction) {
                 execute_privileged(i, &mut self.pc, &mut self.x, &mut self.csr, &mut self.bus)
             } else if let Some(i) = Rv32iInstructionDecoder::decode(instruction) {
                 execute_rv32i(i, &mut self.pc, &mut self.x, &mut self.csr, &mut self.bus)
             } else {
+                // end the loop when unable to decode the instruction
                 break;
+            };
+            if jumped {
+                // skip incrementing the pc when the pc has already been updated
+                continue;
             }
+            // increment the pc
             self.pc.increment();
         }
         self.x.readu(GP)
