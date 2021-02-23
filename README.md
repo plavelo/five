@@ -34,6 +34,10 @@ Then, run the tests with the following command.
 ```
 cargo test
 ```
+You can also specify a binary to run the test as follows.
+```
+cargo make cli ./riscv-tests/isa/rv32ui-p-add.bin
+```
 
 # Features
 * [ ] 32-bit ISA
@@ -57,5 +61,6 @@ cargo test
   * [ ] UART
   * [ ] Virtio
 * [ ] Device tree
+
 # Resources
 * [RISC-V Specifications](https://riscv.org/technical/specifications/)
