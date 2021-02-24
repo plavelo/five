@@ -2,7 +2,9 @@ use crate::{
     emulator::{
         bus::SystemBus,
         cpu::{
-            csr::ControlAndStatusRegister, executor::Executor, pc::ProgramCounter,
+            csr::ControlAndStatusRegister,
+            executor::{Executor, MASK_12BIT, MASK_5BIT},
+            pc::ProgramCounter,
             x::IntegerRegister,
         },
     },
@@ -12,7 +14,6 @@ use crate::{
         },
         Instruction,
     },
-    MASK_12BIT, MASK_5BIT,
 };
 
 pub struct Rv32iExecutor;
@@ -70,11 +71,11 @@ impl Executor for Rv32iExecutor {
                 Rv32iOpcodeI::Xori => x.writeu(rd, x.readu(rs1) ^ imm),
                 Rv32iOpcodeI::Ori => x.writeu(rd, x.readu(rs1) | imm),
                 Rv32iOpcodeI::Andi => x.writeu(rd, x.readu(rs1) & imm),
-                Rv32iOpcodeI::Slti => x.writeu(rd, if x.readi(rs1) < imm as i32 { 1 } else { 0 }),
+                Rv32iOpcodeI::Slti => x.writeu(rd, if x.readi(rs1) < imm as i64 { 1 } else { 0 }),
                 Rv32iOpcodeI::Sltiu => x.writeu(rd, if x.readu(rs1) < imm { 1 } else { 0 }),
                 Rv32iOpcodeI::Jalr => {
                     let last = pc.read();
-                    pc.jump((x.readi(rs1).wrapping_add(imm as i32) & !1) as u32);
+                    pc.jump((x.readi(rs1).wrapping_add(imm as i64) & !1) as u64);
                     x.writeu(rd, last + 4);
                 }
                 Rv32iOpcodeI::Fence => {}  // not yet supported
@@ -84,28 +85,29 @@ impl Executor for Rv32iExecutor {
                 Rv32iOpcodeI::Csrrw => x.writeu(rd, csr.csrrw(imm & MASK_12BIT, x.readu(rs1))),
                 Rv32iOpcodeI::Csrrs => x.writeu(rd, csr.csrrs(imm & MASK_12BIT, x.readu(rs1))),
                 Rv32iOpcodeI::Csrrc => x.writeu(rd, csr.csrrc(imm & MASK_12BIT, x.readu(rs1))),
-                Rv32iOpcodeI::Csrrwi => x.writeu(rd, csr.csrrw(imm & MASK_12BIT, rs1 as u32)),
-                Rv32iOpcodeI::Csrrsi => x.writeu(rd, csr.csrrs(imm & MASK_12BIT, rs1 as u32)),
-                Rv32iOpcodeI::Csrrci => x.writeu(rd, csr.csrrc(imm & MASK_12BIT, rs1 as u32)),
+                Rv32iOpcodeI::Csrrwi => x.writeu(rd, csr.csrrw(imm & MASK_12BIT, rs1 as u64)),
+                Rv32iOpcodeI::Csrrsi => x.writeu(rd, csr.csrrs(imm & MASK_12BIT, rs1 as u64)),
+                Rv32iOpcodeI::Csrrci => x.writeu(rd, csr.csrrc(imm & MASK_12BIT, rs1 as u64)),
                 Rv32iOpcodeI::Lb => x.writei(
                     rd,
-                    bus.load8(x.readi(rs1).wrapping_add(imm as i32) as u32) as i32,
+                    bus.load8(x.readi(rs1).wrapping_add(imm as i64) as u64) as i64,
                 ),
                 Rv32iOpcodeI::Lh => x.writei(
                     rd,
-                    bus.load16(x.readi(rs1).wrapping_add(imm as i32) as u32) as i32,
+                    bus.load16(x.readi(rs1).wrapping_add(imm as i64) as u64) as i64,
                 ),
                 Rv32iOpcodeI::Lbu => x.writeu(
                     rd,
-                    bus.load8(x.readi(rs1).wrapping_add(imm as i32) as u32) as u32,
+                    bus.load8(x.readi(rs1).wrapping_add(imm as i64) as u64) as u64,
                 ),
                 Rv32iOpcodeI::Lhu => x.writeu(
                     rd,
-                    bus.load16(x.readi(rs1).wrapping_add(imm as i32) as u32) as u32,
+                    bus.load16(x.readi(rs1).wrapping_add(imm as i64) as u64) as u64,
                 ),
-                Rv32iOpcodeI::Lw => {
-                    x.writeu(rd, bus.load32(x.readi(rs1).wrapping_add(imm as i32) as u32))
-                }
+                Rv32iOpcodeI::Lw => x.writeu(
+                    rd,
+                    bus.load32(x.readi(rs1).wrapping_add(imm as i64) as u64) as u64,
+                ),
             },
             Instruction::TypeS {
                 opcode,
@@ -114,12 +116,14 @@ impl Executor for Rv32iExecutor {
                 imm,
             } => match opcode {
                 Rv32iOpcodeS::Sb => {
-                    bus.store8((x.readi(rs1) + imm as i32) as u32, x.readu(rs2) as u8)
+                    bus.store8((x.readi(rs1) + imm as i64) as u64, x.readu(rs2) as u8)
                 }
                 Rv32iOpcodeS::Sh => {
-                    bus.store16((x.readi(rs1) + imm as i32) as u32, x.readu(rs2) as u16)
+                    bus.store16((x.readi(rs1) + imm as i64) as u64, x.readu(rs2) as u16)
                 }
-                Rv32iOpcodeS::Sw => bus.store32((x.readi(rs1) + imm as i32) as u32, x.readu(rs2)),
+                Rv32iOpcodeS::Sw => {
+                    bus.store32((x.readi(rs1) + imm as i64) as u64, x.readu(rs2) as u32)
+                }
             },
             Instruction::TypeB {
                 opcode,
@@ -129,32 +133,32 @@ impl Executor for Rv32iExecutor {
             } => match opcode {
                 Rv32iOpcodeB::Beq => {
                     if x.readu(rs1) == x.readu(rs2) {
-                        pc.jumpr(imm as i32);
+                        pc.jumpr(imm as i64);
                     }
                 }
                 Rv32iOpcodeB::Bne => {
                     if x.readu(rs1) != x.readu(rs2) {
-                        pc.jumpr(imm as i32);
+                        pc.jumpr(imm as i64);
                     }
                 }
                 Rv32iOpcodeB::Blt => {
                     if x.readi(rs1) < x.readi(rs2) {
-                        pc.jumpr(imm as i32);
+                        pc.jumpr(imm as i64);
                     }
                 }
                 Rv32iOpcodeB::Bge => {
                     if x.readi(rs1) >= x.readi(rs2) {
-                        pc.jumpr(imm as i32);
+                        pc.jumpr(imm as i64);
                     }
                 }
                 Rv32iOpcodeB::Bltu => {
                     if x.readu(rs1) < x.readu(rs2) {
-                        pc.jumpr(imm as i32);
+                        pc.jumpr(imm as i64);
                     }
                 }
                 Rv32iOpcodeB::Bgeu => {
                     if x.readu(rs1) >= x.readu(rs2) {
-                        pc.jumpr(imm as i32);
+                        pc.jumpr(imm as i64);
                     }
                 }
             },
@@ -165,7 +169,7 @@ impl Executor for Rv32iExecutor {
             Instruction::TypeJ { opcode, rd, imm } => match opcode {
                 Rv32iOpcodeJ::Jal => {
                     x.writeu(rd, pc.read() + 4);
-                    pc.jumpr(imm as i32);
+                    pc.jumpr(imm as i64);
                 }
             },
         }

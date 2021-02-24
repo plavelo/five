@@ -24,7 +24,7 @@ pub struct Cpu {
 }
 
 impl Cpu {
-    pub fn run(&mut self) -> u32 {
+    pub fn run(&mut self) -> u64 {
         while self.pc.read() < self.bus.memory.size() {
             // read an address from the pc
             let address = self.pc.read();

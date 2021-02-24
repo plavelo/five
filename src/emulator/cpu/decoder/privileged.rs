@@ -1,5 +1,5 @@
 use crate::{
-    emulator::cpu::decoder::Decoder,
+    emulator::cpu::decoder::{Decoder, MASK_3BIT, MASK_5BIT, MASK_7BIT},
     isa::instruction::{
         privileged::{
             PrivilegedOpcodeB, PrivilegedOpcodeI, PrivilegedOpcodeJ, PrivilegedOpcodeR,
@@ -7,7 +7,6 @@ use crate::{
         },
         Instruction,
     },
-    MASK_3BIT, MASK_5BIT, MASK_7BIT,
 };
 
 pub struct PrivilegedDecoder;

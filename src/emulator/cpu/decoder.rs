@@ -1,7 +1,11 @@
 pub mod privileged;
 pub mod rv32i;
 
-use crate::{isa::instruction::Instruction, MASK_5BIT};
+use crate::isa::instruction::Instruction;
+
+const MASK_3BIT: u32 = 0b111;
+const MASK_5BIT: u32 = 0b11111;
+const MASK_7BIT: u32 = 0b1111111;
 
 pub trait Decoder {
     type OpcodeR;
@@ -69,7 +73,7 @@ pub trait Decoder {
         opcode.map(|o| {
             let rd = ((instruction >> 7) & MASK_5BIT) as usize;
             let rs1 = ((instruction >> 15) & MASK_5BIT) as usize;
-            let imm = ((instruction as i32) >> 20) as u32;
+            let imm = ((instruction as i32) >> 20) as u64;
             Instruction::TypeI {
                 opcode: o,
                 rd,
@@ -96,7 +100,8 @@ pub trait Decoder {
         opcode.map(|o| {
             let rs1 = ((instruction >> 15) & MASK_5BIT) as usize;
             let rs2 = ((instruction >> 20) & MASK_5BIT) as usize;
-            let imm = ((instruction & 0xfe000000) as i32 >> 20) as u32 | (instruction >> 7) & 0x1f;
+            let imm = ((instruction & 0xfe000000) as i32 >> 20) as u64
+                | ((instruction >> 7) & 0x1f) as u64;
             Instruction::TypeS {
                 opcode: o,
                 rs1,
@@ -123,10 +128,10 @@ pub trait Decoder {
         opcode.map(|o| {
             let rs1 = ((instruction >> 15) & MASK_5BIT) as usize;
             let rs2 = ((instruction >> 20) & MASK_5BIT) as usize;
-            let imm = ((instruction & 0x80000000) as i32 >> 19) as u32
-                | (instruction & 0x80) << 4
-                | (instruction >> 20) & 0x7e0
-                | (instruction >> 7) & 0x1e;
+            let imm = ((instruction & 0x80000000) as i32 >> 19) as u64
+                | ((instruction & 0x80) << 4) as u64
+                | ((instruction >> 20) & 0x7e0) as u64
+                | ((instruction >> 7) & 0x1e) as u64;
             Instruction::TypeB {
                 opcode: o,
                 rs1,
@@ -152,7 +157,7 @@ pub trait Decoder {
     > {
         opcode.map(|o| {
             let rd = ((instruction >> 7) & MASK_5BIT) as usize;
-            let imm = instruction & 0xfffff000;
+            let imm = (instruction & 0xfffff000) as u64;
             Instruction::TypeU { opcode: o, rd, imm }
         })
     }
@@ -173,10 +178,10 @@ pub trait Decoder {
     > {
         opcode.map(|o| {
             let rd = ((instruction >> 7) & MASK_5BIT) as usize;
-            let imm = ((instruction & 0x80000000) as i32 >> 11) as u32
-                | instruction & 0xff000
-                | (instruction >> 9) & 0x800
-                | (instruction >> 20) & 0x7fe;
+            let imm = ((instruction & 0x80000000) as i32 >> 11) as u64
+                | (instruction & 0xff000) as u64
+                | ((instruction >> 9) & 0x800) as u64
+                | ((instruction >> 20) & 0x7fe) as u64;
             Instruction::TypeJ { opcode: o, rd, imm }
         })
     }

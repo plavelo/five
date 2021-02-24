@@ -17,15 +17,15 @@ impl Emulator {
         let buffer = BufReader::new(file);
         for (address, byte) in buffer.bytes().enumerate() {
             self.cpu.bus.memory.store(
-                address as u32 + MEMORY_BASE_ADDRESS,
-                byte? as u32,
+                address as u64 + MEMORY_BASE_ADDRESS,
+                byte? as u64,
                 Xlen::Byte,
             );
         }
         Ok(())
     }
 
-    pub fn run(&mut self) -> u32 {
+    pub fn run(&mut self) -> u64 {
         self.cpu.run()
     }
 }

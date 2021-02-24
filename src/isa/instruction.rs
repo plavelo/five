@@ -15,29 +15,29 @@ pub enum Instruction<OpcodeR, OpcodeI, OpcodeS, OpcodeB, OpcodeU, OpcodeJ> {
         opcode: OpcodeI,
         rs1: usize,
         rd: usize,
-        imm: u32,
+        imm: u64,
     },
     TypeS {
         opcode: OpcodeS,
         rs1: usize,
         rs2: usize,
-        imm: u32,
+        imm: u64,
     },
     TypeB {
         opcode: OpcodeB,
         rs1: usize,
         rs2: usize,
-        imm: u32,
+        imm: u64,
     },
     TypeU {
         opcode: OpcodeU,
         rd: usize,
-        imm: u32,
+        imm: u64,
     },
     TypeJ {
         opcode: OpcodeJ,
         rd: usize,
-        imm: u32,
+        imm: u64,
     },
 }
 
