@@ -31,16 +31,22 @@ impl Cpu {
             // fetch an instruction
             let instruction = self.bus.load32(address);
             // decode and execute the instruction
-            if let Some(i) = PrivilegedDecoder::decode(instruction) {
+            if let Some(decoded) = PrivilegedDecoder::decode(instruction) {
                 PrivilegedExecutor::execute(
-                    i,
+                    decoded,
                     &mut self.pc,
                     &mut self.x,
                     &mut self.csr,
                     &mut self.bus,
                 )
-            } else if let Some(i) = Rv32iDecoder::decode(instruction) {
-                Rv32iExecutor::execute(i, &mut self.pc, &mut self.x, &mut self.csr, &mut self.bus)
+            } else if let Some(decoded) = Rv32iDecoder::decode(instruction) {
+                Rv32iExecutor::execute(
+                    decoded,
+                    &mut self.pc,
+                    &mut self.x,
+                    &mut self.csr,
+                    &mut self.bus,
+                )
             } else {
                 // end the loop when unable to decode the instruction
                 break;
