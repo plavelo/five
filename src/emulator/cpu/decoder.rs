@@ -3,7 +3,7 @@ pub mod rv32i;
 
 use crate::{isa::instruction::Instruction, MASK_5BIT};
 
-pub trait InstructionDecoder {
+pub trait Decoder {
     type OpcodeR;
     type OpcodeI;
     type OpcodeS;
