@@ -1,5 +1,5 @@
 # five
-![build](https://github.com/plavelo/five/workflows/test/badge.svg)
+[![build](https://github.com/plavelo/five/workflows/test/badge.svg)](https://github.com/plavelo/five/actions)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/plavelo/five/main/LICENSE)
 
 `five` is a RISC-V emulator in Rust.

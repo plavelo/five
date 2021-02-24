@@ -1,5 +1,5 @@
 use crate::{
-    emulator::cpu::decoder::InstructionDecoder,
+    emulator::cpu::decoder::Decoder,
     isa::instruction::{
         rv32i::{
             Rv32iOpcodeB, Rv32iOpcodeI, Rv32iOpcodeJ, Rv32iOpcodeR, Rv32iOpcodeS, Rv32iOpcodeU,
@@ -9,9 +9,9 @@ use crate::{
     MASK_3BIT, MASK_7BIT,
 };
 
-pub struct Rv32iInstructionDecoder;
+pub struct Rv32iDecoder;
 
-impl InstructionDecoder for Rv32iInstructionDecoder {
+impl Decoder for Rv32iDecoder {
     type OpcodeR = Rv32iOpcodeR;
     type OpcodeI = Rv32iOpcodeI;
     type OpcodeS = Rv32iOpcodeS;
@@ -150,7 +150,7 @@ mod tests {
     fn decode_typeu_ok() {
         let inst = 0b00000000010101010101_00101_0010111;
         assert_eq!(
-            Rv32iInstructionDecoder::decode(inst).unwrap(),
+            Rv32iDecoder::decode(inst).unwrap(),
             Instruction::TypeU {
                 opcode: Rv32iOpcodeU::Auipc,
                 rd: 0b00101,
@@ -163,7 +163,7 @@ mod tests {
     fn decode_typej_ok() {
         let inst = 0b1_0000000010_1_01010101_00101_1101111;
         assert_eq!(
-            Rv32iInstructionDecoder::decode(inst).unwrap(),
+            Rv32iDecoder::decode(inst).unwrap(),
             Instruction::TypeJ {
                 opcode: Rv32iOpcodeJ::Jal,
                 rd: 0b00101,
@@ -176,7 +176,7 @@ mod tests {
     fn decode_typei_ok() {
         let inst = 0b100000000101_01010_000_00101_1100111;
         assert_eq!(
-            Rv32iInstructionDecoder::decode(inst).unwrap(),
+            Rv32iDecoder::decode(inst).unwrap(),
             Instruction::TypeI {
                 opcode: Rv32iOpcodeI::Jalr,
                 rs1: 0b01010,
@@ -190,7 +190,7 @@ mod tests {
     fn decode_typeb_ok() {
         let inst = 0b1010101_00101_01010_000_10101_1100011;
         assert_eq!(
-            Rv32iInstructionDecoder::decode(inst).unwrap(),
+            Rv32iDecoder::decode(inst).unwrap(),
             Instruction::TypeB {
                 opcode: Rv32iOpcodeB::Beq,
                 rs1: 0b01010,
@@ -204,7 +204,7 @@ mod tests {
     fn decode_types_ok() {
         let inst = 0b1010101_00101_01010_000_10101_0100011;
         assert_eq!(
-            Rv32iInstructionDecoder::decode(inst).unwrap(),
+            Rv32iDecoder::decode(inst).unwrap(),
             Instruction::TypeS {
                 opcode: Rv32iOpcodeS::Sb,
                 rs1: 0b01010,
@@ -218,7 +218,7 @@ mod tests {
     fn decode_typer_ok() {
         let inst = 0b0000000_00101_01010_000_10101_0110011;
         assert_eq!(
-            Rv32iInstructionDecoder::decode(inst).unwrap(),
+            Rv32iDecoder::decode(inst).unwrap(),
             Instruction::TypeR {
                 opcode: Rv32iOpcodeR::Add,
                 rs1: 0b01010,

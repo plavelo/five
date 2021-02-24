@@ -8,11 +8,8 @@ use crate::emulator::{
     bus::SystemBus,
     cpu::{
         csr::ControlAndStatusRegister,
-        decoder::{
-            privileged::PrivilegedInstructionDecoder, rv32i::Rv32iInstructionDecoder,
-            InstructionDecoder,
-        },
-        executor::{privileged::execute_privileged, rv32i::execute_rv32i},
+        decoder::{privileged::PrivilegedDecoder, rv32i::Rv32iDecoder, Decoder},
+        executor::{privileged::PrivilegedExecutor, rv32i::Rv32iExecutor, Executor},
         pc::ProgramCounter,
         x::{IntegerRegister, GP},
     },
@@ -34,20 +31,30 @@ impl Cpu {
             // fetch an instruction
             let instruction = self.bus.load32(address);
             // decode and execute the instruction
-            let jumped = if let Some(i) = PrivilegedInstructionDecoder::decode(instruction) {
-                execute_privileged(i, &mut self.pc, &mut self.x, &mut self.csr, &mut self.bus)
-            } else if let Some(i) = Rv32iInstructionDecoder::decode(instruction) {
-                execute_rv32i(i, &mut self.pc, &mut self.x, &mut self.csr, &mut self.bus)
+            if let Some(decoded) = PrivilegedDecoder::decode(instruction) {
+                PrivilegedExecutor::execute(
+                    decoded,
+                    &mut self.pc,
+                    &mut self.x,
+                    &mut self.csr,
+                    &mut self.bus,
+                )
+            } else if let Some(decoded) = Rv32iDecoder::decode(instruction) {
+                Rv32iExecutor::execute(
+                    decoded,
+                    &mut self.pc,
+                    &mut self.x,
+                    &mut self.csr,
+                    &mut self.bus,
+                )
             } else {
                 // end the loop when unable to decode the instruction
                 break;
             };
-            if jumped {
-                // skip incrementing the pc when the pc has already been updated
-                continue;
+            // increment the pc when the pc has not been updated
+            if self.pc.read() == address {
+                self.pc.increment();
             }
-            // increment the pc
-            self.pc.increment();
         }
         self.x.readu(GP)
     }
