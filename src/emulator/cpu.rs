@@ -8,8 +8,12 @@ use crate::emulator::{
     bus::SystemBus,
     cpu::{
         csr::ControlAndStatusRegister,
-        decoder::{privileged::PrivilegedDecoder, rv32i::Rv32iDecoder, Decoder},
-        executor::{privileged::PrivilegedExecutor, rv32i::Rv32iExecutor, Executor},
+        decoder::{
+            privileged::PrivilegedDecoder, rv32i::Rv32iDecoder, rv64i::Rv64iDecoder, Decoder,
+        },
+        executor::{
+            privileged::PrivilegedExecutor, rv32i::Rv32iExecutor, rv64i::Rv64iExecutor, Executor,
+        },
         pc::ProgramCounter,
         x::{IntegerRegister, GP},
     },
@@ -24,7 +28,7 @@ pub struct Cpu {
 }
 
 impl Cpu {
-    pub fn run(&mut self) -> u32 {
+    pub fn run(&mut self) -> u64 {
         while self.pc.read() < self.bus.memory.size() {
             // read an address from the pc
             let address = self.pc.read();
@@ -41,6 +45,14 @@ impl Cpu {
                 )
             } else if let Some(decoded) = Rv32iDecoder::decode(instruction) {
                 Rv32iExecutor::execute(
+                    decoded,
+                    &mut self.pc,
+                    &mut self.x,
+                    &mut self.csr,
+                    &mut self.bus,
+                )
+            } else if let Some(decoded) = Rv64iDecoder::decode(instruction) {
+                Rv64iExecutor::execute(
                     decoded,
                     &mut self.pc,
                     &mut self.x,

@@ -66,7 +66,7 @@ pub const T5: usize = 30;
 pub const T6: usize = 31;
 
 pub struct IntegerRegister {
-    x: [u32; 32],
+    x: [u64; 32],
 }
 
 impl Default for IntegerRegister {
@@ -78,21 +78,21 @@ impl Default for IntegerRegister {
 }
 
 impl IntegerRegister {
-    pub fn readi(&self, register: usize) -> i32 {
-        self.x[register] as i32
+    pub fn readi(&self, register: usize) -> i64 {
+        self.x[register] as i64
     }
 
-    pub fn readu(&self, register: usize) -> u32 {
+    pub fn readu(&self, register: usize) -> u64 {
         self.x[register]
     }
 
-    pub fn writei(&mut self, register: usize, value: i32) {
+    pub fn writei(&mut self, register: usize, value: i64) {
         if register != ZERO {
-            self.x[register] = value as u32;
+            self.x[register] = value as u64;
         }
     }
 
-    pub fn writeu(&mut self, register: usize, value: u32) {
+    pub fn writeu(&mut self, register: usize, value: u64) {
         if register != ZERO {
             self.x[register] = value;
         }

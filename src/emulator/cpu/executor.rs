@@ -1,5 +1,6 @@
 pub mod privileged;
 pub mod rv32i;
+pub mod rv64i;
 
 use crate::{
     emulator::{
@@ -8,6 +9,9 @@ use crate::{
     },
     isa::instruction::Instruction,
 };
+
+const MASK_5BIT: u64 = 0b11111;
+const MASK_12BIT: u64 = 0b111111111111;
 
 pub trait Executor {
     type OpcodeR;

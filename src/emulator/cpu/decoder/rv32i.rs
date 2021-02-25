@@ -1,12 +1,11 @@
 use crate::{
-    emulator::cpu::decoder::Decoder,
+    emulator::cpu::decoder::{Decoder, MASK_3BIT, MASK_7BIT},
     isa::instruction::{
         rv32i::{
             Rv32iOpcodeB, Rv32iOpcodeI, Rv32iOpcodeJ, Rv32iOpcodeR, Rv32iOpcodeS, Rv32iOpcodeU,
         },
         Instruction,
     },
-    MASK_3BIT, MASK_7BIT,
 };
 
 pub struct Rv32iDecoder;
@@ -147,75 +146,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn decode_typeu_ok() {
-        let inst = 0b00000000010101010101_00101_0010111;
-        assert_eq!(
-            Rv32iDecoder::decode(inst).unwrap(),
-            Instruction::TypeU {
-                opcode: Rv32iOpcodeU::Auipc,
-                rd: 0b00101,
-                imm: 0b010101010101_00000_0000000,
-            }
-        );
-    }
-
-    #[test]
-    fn decode_typej_ok() {
-        let inst = 0b1_0000000010_1_01010101_00101_1101111;
-        assert_eq!(
-            Rv32iDecoder::decode(inst).unwrap(),
-            Instruction::TypeJ {
-                opcode: Rv32iOpcodeJ::Jal,
-                rd: 0b00101,
-                imm: 0b11111111111_1_01010101_1_0000000010_0,
-            }
-        );
-    }
-
-    #[test]
-    fn decode_typei_ok() {
-        let inst = 0b100000000101_01010_000_00101_1100111;
-        assert_eq!(
-            Rv32iDecoder::decode(inst).unwrap(),
-            Instruction::TypeI {
-                opcode: Rv32iOpcodeI::Jalr,
-                rs1: 0b01010,
-                rd: 0b00101,
-                imm: 0b11111111111111111111100000000101,
-            }
-        );
-    }
-
-    #[test]
-    fn decode_typeb_ok() {
-        let inst = 0b1010101_00101_01010_000_10101_1100011;
-        assert_eq!(
-            Rv32iDecoder::decode(inst).unwrap(),
-            Instruction::TypeB {
-                opcode: Rv32iOpcodeB::Beq,
-                rs1: 0b01010,
-                rs2: 0b00101,
-                imm: 0b11111111111111111111_1_010101_1010_0,
-            }
-        );
-    }
-
-    #[test]
-    fn decode_types_ok() {
-        let inst = 0b1010101_00101_01010_000_10101_0100011;
-        assert_eq!(
-            Rv32iDecoder::decode(inst).unwrap(),
-            Instruction::TypeS {
-                opcode: Rv32iOpcodeS::Sb,
-                rs1: 0b01010,
-                rs2: 0b00101,
-                imm: 0b11111111111111111111_1010101_10101,
-            }
-        );
-    }
-
-    #[test]
-    fn decode_typer_ok() {
+    fn decode_type_r_ok() {
         let inst = 0b0000000_00101_01010_000_10101_0110011;
         assert_eq!(
             Rv32iDecoder::decode(inst).unwrap(),
@@ -224,6 +155,74 @@ mod tests {
                 rs1: 0b01010,
                 rs2: 0b00101,
                 rd: 0b10101,
+            }
+        );
+    }
+
+    #[test]
+    fn decode_type_i_ok() {
+        let inst = 0b100000000101_01010_000_00101_1100111;
+        assert_eq!(
+            Rv32iDecoder::decode(inst).unwrap(),
+            Instruction::TypeI {
+                opcode: Rv32iOpcodeI::Jalr,
+                rs1: 0b01010,
+                rd: 0b00101,
+                imm: 0b11111111111111111111111111111111_11111111111111111111100000000101,
+            }
+        );
+    }
+
+    #[test]
+    fn decode_type_s_ok() {
+        let inst = 0b1010101_00101_01010_000_10101_0100011;
+        assert_eq!(
+            Rv32iDecoder::decode(inst).unwrap(),
+            Instruction::TypeS {
+                opcode: Rv32iOpcodeS::Sb,
+                rs1: 0b01010,
+                rs2: 0b00101,
+                imm: 0b11111111111111111111111111111111_11111111111111111111_1010101_10101,
+            }
+        );
+    }
+
+    #[test]
+    fn decode_type_b_ok() {
+        let inst = 0b1010101_00101_01010_000_10101_1100011;
+        assert_eq!(
+            Rv32iDecoder::decode(inst).unwrap(),
+            Instruction::TypeB {
+                opcode: Rv32iOpcodeB::Beq,
+                rs1: 0b01010,
+                rs2: 0b00101,
+                imm: 0b11111111111111111111111111111111_11111111111111111111_1_010101_1010_0,
+            }
+        );
+    }
+
+    #[test]
+    fn decode_type_u_ok() {
+        let inst = 0b00000000010101010101_00101_0010111;
+        assert_eq!(
+            Rv32iDecoder::decode(inst).unwrap(),
+            Instruction::TypeU {
+                opcode: Rv32iOpcodeU::Auipc,
+                rd: 0b00101,
+                imm: 0b00000000000000000000000000000000_010101010101_00000_0000000,
+            }
+        );
+    }
+
+    #[test]
+    fn decode_type_j_ok() {
+        let inst = 0b1_0000000010_1_01010101_00101_1101111;
+        assert_eq!(
+            Rv32iDecoder::decode(inst).unwrap(),
+            Instruction::TypeJ {
+                opcode: Rv32iOpcodeJ::Jal,
+                rd: 0b00101,
+                imm: 0b11111111111111111111111111111111_11111111111_1_01010101_1_0000000010_0,
             }
         );
     }

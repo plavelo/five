@@ -19,7 +19,7 @@ fn run(name: &str) -> bool {
 }
 
 #[test]
-fn rv32uip_ok() {
+fn rv32ui_p_ok() {
     assert!(run("rv32ui-p-add"), "{}", "rv32ui-p-add");
     assert!(run("rv32ui-p-addi"), "{}", "rv32ui-p-addi");
     assert!(run("rv32ui-p-and"), "{}", "rv32ui-p-and");
@@ -59,4 +59,59 @@ fn rv32uip_ok() {
     assert!(run("rv32ui-p-sw"), "{}", "rv32ui-p-sw");
     assert!(run("rv32ui-p-xor"), "{}", "rv32ui-p-xor");
     assert!(run("rv32ui-p-xori"), "{}", "rv32ui-p-xori");
+}
+
+#[test]
+fn rv64ui_p_ok() {
+    assert!(run("rv64ui-p-add"), "{}", "rv64ui-p-add");
+    assert!(run("rv64ui-p-addi"), "{}", "rv64ui-p-addi");
+    assert!(run("rv64ui-p-addiw"), "{}", "rv64ui-p-addiw");
+    assert!(run("rv64ui-p-addw"), "{}", "rv64ui-p-addw");
+    assert!(run("rv64ui-p-and"), "{}", "rv64ui-p-and");
+    assert!(run("rv64ui-p-andi"), "{}", "rv64ui-p-andi");
+    assert!(run("rv64ui-p-auipc"), "{}", "rv64ui-p-auipc");
+    assert!(run("rv64ui-p-beq"), "{}", "rv64ui-p-beq");
+    assert!(run("rv64ui-p-bge"), "{}", "rv64ui-p-bge");
+    assert!(run("rv64ui-p-bgeu"), "{}", "rv64ui-p-bgeu");
+    assert!(run("rv64ui-p-blt"), "{}", "rv64ui-p-blt");
+    assert!(run("rv64ui-p-bltu"), "{}", "rv64ui-p-bltu");
+    assert!(run("rv64ui-p-bne"), "{}", "rv64ui-p-bne");
+    assert!(run("rv64ui-p-fence_i"), "{}", "rv64ui-p-fence_i");
+    assert!(run("rv64ui-p-jal"), "{}", "rv64ui-p-jal");
+    assert!(run("rv64ui-p-jalr"), "{}", "rv64ui-p-jalr");
+    assert!(run("rv64ui-p-lb"), "{}", "rv64ui-p-lb");
+    assert!(run("rv64ui-p-lbu"), "{}", "rv64ui-p-lbu");
+    assert!(run("rv64ui-p-ld"), "{}", "rv64ui-p-ld");
+    assert!(run("rv64ui-p-lh"), "{}", "rv64ui-p-lh");
+    assert!(run("rv64ui-p-lhu"), "{}", "rv64ui-p-lhu");
+    assert!(run("rv64ui-p-lui"), "{}", "rv64ui-p-lui");
+    assert!(run("rv64ui-p-lw"), "{}", "rv64ui-p-lw");
+    assert!(run("rv64ui-p-lwu"), "{}", "rv64ui-p-lwu");
+    assert!(run("rv64ui-p-or"), "{}", "rv64ui-p-or");
+    assert!(run("rv64ui-p-ori"), "{}", "rv64ui-p-ori");
+    assert!(run("rv64ui-p-sb"), "{}", "rv64ui-p-sb");
+    assert!(run("rv64ui-p-sd"), "{}", "rv64ui-p-sd");
+    assert!(run("rv64ui-p-sh"), "{}", "rv64ui-p-sh");
+    assert!(run("rv64ui-p-simple"), "{}", "rv64ui-p-simple");
+    assert!(run("rv64ui-p-sll"), "{}", "rv64ui-p-sll");
+    assert!(run("rv64ui-p-slli"), "{}", "rv64ui-p-slli");
+    assert!(run("rv64ui-p-slliw"), "{}", "rv64ui-p-slliw");
+    assert!(run("rv64ui-p-sllw"), "{}", "rv64ui-p-sllw");
+    assert!(run("rv64ui-p-slt"), "{}", "rv64ui-p-slt");
+    assert!(run("rv64ui-p-slti"), "{}", "rv64ui-p-slti");
+    assert!(run("rv64ui-p-sltiu"), "{}", "rv64ui-p-sltiu");
+    assert!(run("rv64ui-p-sltu"), "{}", "rv64ui-p-sltu");
+    assert!(run("rv64ui-p-sra"), "{}", "rv64ui-p-sra");
+    assert!(run("rv64ui-p-srai"), "{}", "rv64ui-p-srai");
+    assert!(run("rv64ui-p-sraiw"), "{}", "rv64ui-p-sraiw");
+    assert!(run("rv64ui-p-sraw"), "{}", "rv64ui-p-sraw");
+    assert!(run("rv64ui-p-srl"), "{}", "rv64ui-p-srl");
+    assert!(run("rv64ui-p-srli"), "{}", "rv64ui-p-srli");
+    assert!(run("rv64ui-p-srliw"), "{}", "rv64ui-p-srliw");
+    assert!(run("rv64ui-p-srlw"), "{}", "rv64ui-p-srlw");
+    assert!(run("rv64ui-p-sub"), "{}", "rv64ui-p-sub");
+    assert!(run("rv64ui-p-subw"), "{}", "rv64ui-p-subw");
+    assert!(run("rv64ui-p-sw"), "{}", "rv64ui-p-sw");
+    assert!(run("rv64ui-p-xor"), "{}", "rv64ui-p-xor");
+    assert!(run("rv64ui-p-xori"), "{}", "rv64ui-p-xori");
 }
