@@ -2,7 +2,7 @@ mod bus;
 mod cpu;
 mod memory;
 
-use crate::emulator::{bus::Xlen, cpu::Cpu, memory::MEMORY_BASE_ADDRESS};
+use crate::emulator::{bus::Size, cpu::Cpu, memory::MEMORY_BASE_ADDRESS};
 use std::fs::File;
 use std::io::{BufReader, Read, Result};
 
@@ -19,7 +19,7 @@ impl Emulator {
             self.cpu.bus.memory.store(
                 address as u64 + MEMORY_BASE_ADDRESS,
                 byte? as u64,
-                Xlen::Byte,
+                Size::Byte,
             );
         }
         Ok(())

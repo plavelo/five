@@ -1,4 +1,4 @@
-use crate::emulator::bus::Xlen;
+use crate::emulator::bus::Size;
 
 pub const MEMORY_SIZE: u64 = 1024 * 1024 * 1024;
 pub const MEMORY_BASE_ADDRESS: u64 = 0x8000_0000;
@@ -20,14 +20,14 @@ impl Memory {
         MEMORY_BASE_ADDRESS + MEMORY_SIZE
     }
 
-    pub fn load(&self, address: u64, xlen: Xlen) -> u64 {
-        (0..xlen as usize).fold(0, |acc, i| {
+    pub fn load(&self, address: u64, size: Size) -> u64 {
+        (0..size as usize).fold(0, |acc, i| {
             acc | (self.memory[(address - MEMORY_BASE_ADDRESS) as usize + i] as u64) << (8 * i)
         })
     }
 
-    pub fn store(&mut self, address: u64, value: u64, xlen: Xlen) {
-        for i in 0..xlen as usize {
+    pub fn store(&mut self, address: u64, value: u64, size: Size) {
+        for i in 0..size as usize {
             self.memory[(address - MEMORY_BASE_ADDRESS) as usize + i] = (value >> (i * 8)) as u8;
         }
     }
