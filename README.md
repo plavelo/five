@@ -40,20 +40,12 @@ cargo make cli ./riscv-tests/isa/rv32ui-p-add.bin
 ```
 
 # Features
-* [ ] 32-bit ISA
-  * [x] RV32I (except fence/fence_i/ecall/ebreak)
-  * [ ] RV32M
-  * [ ] RV32A
-  * [ ] RV32F
-  * [ ] RV32D
-  * [ ] Zifencei
-  * [ ] Zicsr
-* [ ] 64-bit ISA
-  * [ ] RV64I
-  * [ ] RV64M
-  * [ ] RV64A
-  * [ ] RV64F
-  * [ ] RV64D
+* [ ] 32-bit/64-bit ISA
+  * [x] RV32I/RV64I (except fence/fence_i/ecall/ebreak)
+  * [ ] RV32M/RV64M
+  * [ ] RV32A/RV64A
+  * [ ] RV32F/RV64F
+  * [ ] RV32D/RV64D
   * [ ] Zifencei
   * [ ] Zicsr
 * [ ] Privileged ISA
