@@ -1,6 +1,8 @@
 pub mod privileged;
 pub mod rv32i;
+pub mod rv32m;
 pub mod rv64i;
+pub mod rv64m;
 
 use crate::isa::instruction::Instruction;
 

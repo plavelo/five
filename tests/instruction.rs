@@ -115,3 +115,32 @@ fn rv64ui_p_ok() {
     assert!(run("rv64ui-p-xor"), "{}", "rv64ui-p-xor");
     assert!(run("rv64ui-p-xori"), "{}", "rv64ui-p-xori");
 }
+
+#[test]
+fn rv32um_p_ok() {
+    assert!(run("rv32um-p-div"), "{}", "rv32um-p-div");
+    assert!(run("rv32um-p-divu"), "{}", "rv32um-p-divu");
+    assert!(run("rv32um-p-mul"), "{}", "rv32um-p-mul");
+    assert!(run("rv32um-p-mulh"), "{}", "rv32um-p-mulh");
+    assert!(run("rv32um-p-mulhsu"), "{}", "rv32um-p-mulhsu");
+    assert!(run("rv32um-p-mulhu"), "{}", "rv32um-p-mulhu");
+    assert!(run("rv32um-p-rem"), "{}", "rv32um-p-rem");
+    assert!(run("rv32um-p-remu"), "{}", "rv32um-p-remu");
+}
+
+#[test]
+fn rv64um_p_ok() {
+    assert!(run("rv64um-p-div"), "{}", "rv64um-p-div");
+    assert!(run("rv64um-p-divu"), "{}", "rv64um-p-divu");
+    assert!(run("rv64um-p-divuw"), "{}", "rv64um-p-divuw");
+    assert!(run("rv64um-p-divw"), "{}", "rv64um-p-divw");
+    assert!(run("rv64um-p-mul"), "{}", "rv64um-p-mul");
+    assert!(run("rv64um-p-mulh"), "{}", "rv64um-p-mulh");
+    assert!(run("rv64um-p-mulhsu"), "{}", "rv64um-p-mulhsu");
+    assert!(run("rv64um-p-mulhu"), "{}", "rv64um-p-mulhu");
+    assert!(run("rv64um-p-mulw"), "{}", "rv64um-p-mulw");
+    assert!(run("rv64um-p-rem"), "{}", "rv64um-p-rem");
+    assert!(run("rv64um-p-remu"), "{}", "rv64um-p-remu");
+    assert!(run("rv64um-p-remuw"), "{}", "rv64um-p-remuw");
+    assert!(run("rv64um-p-remw"), "{}", "rv64um-p-remw");
+}

@@ -9,10 +9,12 @@ use crate::emulator::{
     cpu::{
         csr::ControlAndStatusRegister,
         decoder::{
-            privileged::PrivilegedDecoder, rv32i::Rv32iDecoder, rv64i::Rv64iDecoder, Decoder,
+            privileged::PrivilegedDecoder, rv32i::Rv32iDecoder, rv32m::Rv32mDecoder,
+            rv64i::Rv64iDecoder, rv64m::Rv64mDecoder, Decoder,
         },
         executor::{
-            privileged::PrivilegedExecutor, rv32i::Rv32iExecutor, rv64i::Rv64iExecutor, Executor,
+            privileged::PrivilegedExecutor, rv32i::Rv32iExecutor, rv32m::Rv32mExecutor,
+            rv64i::Rv64iExecutor, rv64m::Rv64mExecutor, Executor,
         },
         pc::ProgramCounter,
         x::{IntegerRegister, GP},
@@ -53,6 +55,22 @@ impl Cpu {
                 )
             } else if let Some(decoded) = Rv64iDecoder::decode(instruction) {
                 Rv64iExecutor::execute(
+                    decoded,
+                    &mut self.pc,
+                    &mut self.x,
+                    &mut self.csr,
+                    &mut self.bus,
+                )
+            } else if let Some(decoded) = Rv32mDecoder::decode(instruction) {
+                Rv32mExecutor::execute(
+                    decoded,
+                    &mut self.pc,
+                    &mut self.x,
+                    &mut self.csr,
+                    &mut self.bus,
+                )
+            } else if let Some(decoded) = Rv64mDecoder::decode(instruction) {
+                Rv64mExecutor::execute(
                     decoded,
                     &mut self.pc,
                     &mut self.x,
