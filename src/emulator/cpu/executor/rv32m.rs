@@ -59,10 +59,54 @@ impl Executor for Rv32mExecutor {
                     rd,
                     ((x.readi(rs1) as u128).wrapping_mul(x.readi(rs2) as u128) >> 64) as u64,
                 ),
-                Rv32mOpcodeR::Div => x.writei(rd, x.readi(rs1).wrapping_div(x.readi(rs2))),
-                Rv32mOpcodeR::Divu => x.writeu(rd, x.readu(rs1).wrapping_div(x.readu(rs2))),
-                Rv32mOpcodeR::Rem => x.writei(rd, x.readi(rs1).wrapping_rem(x.readi(rs2))),
-                Rv32mOpcodeR::Remu => x.writeu(rd, x.readu(rs1).wrapping_rem(x.readu(rs2))),
+                Rv32mOpcodeR::Div => {
+                    let dividend = x.readi(rs1);
+                    let divisor = x.readi(rs2);
+                    x.writei(
+                        rd,
+                        if divisor == 0 {
+                            i64::MAX
+                        } else {
+                            dividend.wrapping_div(divisor)
+                        },
+                    )
+                }
+                Rv32mOpcodeR::Divu => {
+                    let dividend = x.readu(rs1);
+                    let divisor = x.readu(rs2);
+                    x.writeu(
+                        rd,
+                        if divisor == 0 {
+                            u64::MAX
+                        } else {
+                            dividend.wrapping_div(divisor)
+                        },
+                    )
+                }
+                Rv32mOpcodeR::Rem => {
+                    let dividend = x.readi(rs1);
+                    let divisor = x.readi(rs2);
+                    x.writei(
+                        rd,
+                        if divisor == 0 {
+                            dividend
+                        } else {
+                            dividend.wrapping_rem(divisor)
+                        },
+                    )
+                }
+                Rv32mOpcodeR::Remu => {
+                    let dividend = x.readu(rs1);
+                    let divisor = x.readu(rs2);
+                    x.writeu(
+                        rd,
+                        if divisor == 0 {
+                            dividend
+                        } else {
+                            dividend.wrapping_rem(divisor)
+                        },
+                    )
+                }
             },
             Instruction::TypeI {
                 opcode: _,

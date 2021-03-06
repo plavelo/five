@@ -4,6 +4,7 @@ use std::fmt;
 pub enum Rv64mOpcodeR {
     Mulw,
     Divw,
+    Divuw,
     Remw,
     Remuw,
 }
@@ -13,6 +14,7 @@ impl fmt::Display for Rv64mOpcodeR {
         match *self {
             Rv64mOpcodeR::Mulw => f.write_str("Rv64m::Mulw"),
             Rv64mOpcodeR::Divw => f.write_str("Rv64m::Divw"),
+            Rv64mOpcodeR::Divuw => f.write_str("Rv64m::Divuw"),
             Rv64mOpcodeR::Remw => f.write_str("Rv64m::Remw"),
             Rv64mOpcodeR::Remuw => f.write_str("Rv64m::Remuw"),
         }

@@ -49,18 +49,54 @@ impl Executor for Rv64mExecutor {
                     rd,
                     x.readu(rs1).wrapping_mul(x.readu(rs2)) as u32 as i32 as i64,
                 ),
-                Rv64mOpcodeR::Divw => x.writei(
-                    rd,
-                    (x.readi(rs1) as i32).wrapping_div(x.readi(rs2) as i32) as i64,
-                ),
-                Rv64mOpcodeR::Remw => x.writei(
-                    rd,
-                    (x.readi(rs1) as i32).wrapping_rem(x.readi(rs2) as i32) as i64,
-                ),
-                Rv64mOpcodeR::Remuw => x.writei(
-                    rd,
-                    (x.readu(rs1) as u32).wrapping_rem(x.readu(rs2) as u32) as i32 as i64,
-                ),
+                Rv64mOpcodeR::Divw => {
+                    let dividend = x.readi(rs1) as i32;
+                    let divisor = x.readi(rs2) as i32;
+                    x.writei(
+                        rd,
+                        if divisor == 0 {
+                            i64::MAX
+                        } else {
+                            dividend.wrapping_div(divisor) as i64
+                        },
+                    )
+                }
+                Rv64mOpcodeR::Divuw => {
+                    let dividend = x.readu(rs1) as u32;
+                    let divisor = x.readu(rs2) as u32;
+                    x.writei(
+                        rd,
+                        if divisor == 0 {
+                            i64::MAX
+                        } else {
+                            dividend.wrapping_div(divisor) as i32 as i64
+                        },
+                    )
+                }
+                Rv64mOpcodeR::Remw => {
+                    let dividend = x.readi(rs1);
+                    let divisor = x.readi(rs2);
+                    x.writei(
+                        rd,
+                        if divisor == 0 {
+                            dividend
+                        } else {
+                            (dividend as i32).wrapping_rem(divisor as i32) as i64
+                        },
+                    )
+                }
+                Rv64mOpcodeR::Remuw => {
+                    let dividend = x.readu(rs1);
+                    let divisor = x.readu(rs2);
+                    x.writei(
+                        rd,
+                        if divisor == 0 {
+                            dividend as i64
+                        } else {
+                            (dividend as u32).wrapping_rem(divisor as u32) as i32 as i64
+                        },
+                    )
+                }
             },
             Instruction::TypeI {
                 opcode: _,

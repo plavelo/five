@@ -40,6 +40,7 @@ impl Decoder for Rv64mDecoder {
                     0b1 => match funct3 {
                         0b000 => Some(Rv64mOpcodeR::Mulw),
                         0b100 => Some(Rv64mOpcodeR::Divw),
+                        0b101 => Some(Rv64mOpcodeR::Divuw),
                         0b110 => Some(Rv64mOpcodeR::Remw),
                         0b111 => Some(Rv64mOpcodeR::Remuw),
                         _ => None,
