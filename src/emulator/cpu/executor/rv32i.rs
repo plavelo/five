@@ -79,7 +79,6 @@ impl Executor for Rv32iExecutor {
                     x.writeu(rd, last.wrapping_add(4));
                 }
                 Rv32iOpcodeI::Fence => {}  // not yet supported
-                Rv32iOpcodeI::FenceI => {} // not yet supported
                 Rv32iOpcodeI::Ecall => {}  // not yet supported
                 Rv32iOpcodeI::Ebreak => {} // not yet supported
                 Rv32iOpcodeI::Csrrw => x.writeu(rd, csr.csrrw(imm & MASK_12BIT, x.readu(rs1))),

@@ -114,7 +114,6 @@ impl Decoder for Rv32iDecoder {
             0b0001111 => Self::decode_i(
                 match funct3 {
                     0b000 => Some(Rv32iOpcodeI::Fence),
-                    0b001 => Some(Rv32iOpcodeI::FenceI),
                     _ => None,
                 },
                 instruction,
