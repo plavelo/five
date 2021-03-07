@@ -10,11 +10,13 @@ use crate::emulator::{
         csr::ControlAndStatusRegister,
         decoder::{
             privileged::PrivilegedDecoder, rv32i::Rv32iDecoder, rv32m::Rv32mDecoder,
-            rv64i::Rv64iDecoder, rv64m::Rv64mDecoder, zifencei::ZifenceiDecoder, Decoder,
+            rv64i::Rv64iDecoder, rv64m::Rv64mDecoder, zicsr::ZicsrDecoder,
+            zifencei::ZifenceiDecoder, Decoder,
         },
         executor::{
             privileged::PrivilegedExecutor, rv32i::Rv32iExecutor, rv32m::Rv32mExecutor,
-            rv64i::Rv64iExecutor, rv64m::Rv64mExecutor, zifencei::ZifenceiExecutor, Executor,
+            rv64i::Rv64iExecutor, rv64m::Rv64mExecutor, zicsr::ZicsrExecutor,
+            zifencei::ZifenceiExecutor, Executor,
         },
         pc::ProgramCounter,
         x::{IntegerRegister, GP},
@@ -47,6 +49,14 @@ impl Cpu {
                 )
             } else if let Some(decoded) = ZifenceiDecoder::decode(instruction) {
                 ZifenceiExecutor::execute(
+                    decoded,
+                    &mut self.pc,
+                    &mut self.x,
+                    &mut self.csr,
+                    &mut self.bus,
+                )
+            } else if let Some(decoded) = ZicsrDecoder::decode(instruction) {
+                ZicsrExecutor::execute(
                     decoded,
                     &mut self.pc,
                     &mut self.x,

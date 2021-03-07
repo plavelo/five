@@ -3,7 +3,7 @@ use crate::{
         bus::SystemBus,
         cpu::{
             csr::ControlAndStatusRegister,
-            executor::{Executor, MASK_12BIT, MASK_5BIT},
+            executor::{Executor, MASK_5BIT},
             pc::ProgramCounter,
             x::IntegerRegister,
         },
@@ -37,7 +37,7 @@ impl Executor for Rv32iExecutor {
         >,
         pc: &mut ProgramCounter,
         x: &mut IntegerRegister,
-        csr: &mut ControlAndStatusRegister,
+        _: &mut ControlAndStatusRegister,
         bus: &mut SystemBus,
     ) {
         match instruction {
@@ -81,12 +81,6 @@ impl Executor for Rv32iExecutor {
                 Rv32iOpcodeI::Fence => {}  // not yet supported
                 Rv32iOpcodeI::Ecall => {}  // not yet supported
                 Rv32iOpcodeI::Ebreak => {} // not yet supported
-                Rv32iOpcodeI::Csrrw => x.writeu(rd, csr.csrrw(imm & MASK_12BIT, x.readu(rs1))),
-                Rv32iOpcodeI::Csrrs => x.writeu(rd, csr.csrrs(imm & MASK_12BIT, x.readu(rs1))),
-                Rv32iOpcodeI::Csrrc => x.writeu(rd, csr.csrrc(imm & MASK_12BIT, x.readu(rs1))),
-                Rv32iOpcodeI::Csrrwi => x.writeu(rd, csr.csrrw(imm & MASK_12BIT, rs1 as u64)),
-                Rv32iOpcodeI::Csrrsi => x.writeu(rd, csr.csrrs(imm & MASK_12BIT, rs1 as u64)),
-                Rv32iOpcodeI::Csrrci => x.writeu(rd, csr.csrrc(imm & MASK_12BIT, rs1 as u64)),
                 Rv32iOpcodeI::Lb => x.writei(
                     rd,
                     bus.load8(x.readi(rs1).wrapping_add(imm as i64) as u64) as i64,

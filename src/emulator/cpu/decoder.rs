@@ -3,6 +3,7 @@ pub mod rv32i;
 pub mod rv32m;
 pub mod rv64i;
 pub mod rv64m;
+pub mod zicsr;
 pub mod zifencei;
 
 use crate::isa::instruction::Instruction;
