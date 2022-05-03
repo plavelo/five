@@ -4,7 +4,7 @@
 
 `five` is a RISC-V emulator in Rust.
 
-This emulator is under development and currentry supports RV32I ISA.
+This emulator is under development and currently supports RV32I ISA.
 
 # Usage
 You'll need to install [cargo-make](https://github.com/sagiegurari/cargo-make) before running the emulator.
