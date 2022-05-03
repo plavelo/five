@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 fn run(name: &str) -> bool {
     let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    path.push("riscv-tests");
+    path.push("tests");
     path.push("isa");
     path.push(name);
     path.set_extension("bin");
