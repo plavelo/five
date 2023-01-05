@@ -1,3 +1,3 @@
 pub mod emulator;
 mod isa;
-extern crate softfloat_wrapper;
+extern crate rustc_apfloat;

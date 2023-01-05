@@ -20,20 +20,56 @@ use crate::{
         privileged::{cause::Cause, mode::PrivilegeMode},
     },
 };
-use softfloat_wrapper::{Float, RoundingMode, F32};
+use rustc_apfloat::ieee::Single;
+use rustc_apfloat::{Float, Round, StatusAnd};
 
-fn decode_rm(rm: usize) -> Option<RoundingMode> {
+trait StatusAndExt {
+    fn bits(self) -> u32;
+}
+
+impl StatusAndExt for StatusAnd<Single> {
+    fn bits(self) -> u32 {
+        self.value.bits()
+    }
+}
+
+trait SingleExt {
+    fn decode(input: u32) -> Self;
+    fn bits(self) -> u32;
+    fn from_f32(input: f32) -> Self;
+    fn to_f32(self) -> f32;
+}
+
+impl SingleExt for Single {
+    fn decode(input: u32) -> Self {
+        Self::from_bits(input as u128)
+    }
+
+    fn bits(self) -> u32 {
+        self.to_bits() as u32
+    }
+
+    fn from_f32(input: f32) -> Self {
+        Self::from_bits(input.to_bits() as u128)
+    }
+
+    fn to_f32(self) -> f32 {
+        f32::from_bits(self.to_bits() as u32)
+    }
+}
+
+fn decode_rm(rm: usize) -> Option<Round> {
     match rm {
-        0b000 => Some(RoundingMode::TiesToEven), // RNE, Round to Nearest, ties to Even
-        0b001 => Some(RoundingMode::TowardZero), // RTZ, Round towards Zero
-        0b010 => Some(RoundingMode::TowardNegative), // RDN, Round Down (towards −∞)
-        0b011 => Some(RoundingMode::TowardPositive), // RUP, Round Up (towards +∞)
-        0b100 => Some(RoundingMode::TiesToAway), // RMM, Round to Nearest, ties to Max Magnitude
+        0b000 => Some(Round::NearestTiesToEven), // RNE, Round to Nearest, ties to Even
+        0b001 => Some(Round::TowardZero),        // RTZ, Round towards Zero
+        0b010 => Some(Round::TowardNegative),    // RDN, Round Down (towards −∞)
+        0b011 => Some(Round::TowardPositive),    // RUP, Round Up (towards +∞)
+        0b100 => Some(Round::NearestTiesToAway), // RMM, Round to Nearest, ties to Max Magnitude
         _ => None,
     }
 }
 
-fn select_rm(rm: usize, csr: &mut ControlAndStatusRegister) -> Option<RoundingMode> {
+fn select_rm(rm: usize, csr: &mut ControlAndStatusRegister) -> Option<Round> {
     match rm {
         0b111 => {
             // DYN, In instruction’s rm field, selects dynamic rounding mode; In Rounding Mode register, Invalid.
@@ -87,138 +123,149 @@ impl Executor for Rv32fExecutor {
                     Rv32fOpcodeR::FmaddS => {
                         f.write(
                             rd,
-                            F32::from_bits(f.read(rs1))
-                                .fused_mul_add(
-                                    F32::from_bits(f.read(rs2)),
-                                    F32::from_bits(f.read(rs3)),
+                            Single::decode(f.read(rs1))
+                                .mul_add_r(
+                                    Single::decode(f.read(rs2)),
+                                    Single::decode(f.read(rs3)),
                                     rm,
                                 )
-                                .to_bits(),
+                                .bits(),
                         );
                         Ok(())
                     }
                     Rv32fOpcodeR::FmsubS => {
                         f.write(
                             rd,
-                            F32::from_bits(f.read(rs1))
-                                .fused_mul_add(
-                                    F32::from_bits(f.read(rs2)),
-                                    F32::neg(&F32::from_bits(f.read(rs3))),
+                            Single::decode(f.read(rs1))
+                                .mul_add_r(
+                                    Single::decode(f.read(rs2)),
+                                    -Single::decode(f.read(rs3)),
                                     rm,
                                 )
-                                .to_bits(),
+                                .bits(),
                         );
                         Ok(())
                     }
                     Rv32fOpcodeR::FnmsubS => {
                         f.write(
                             rd,
-                            F32::from_bits(f.read(rs1))
-                                .fused_mul_add(
-                                    F32::neg(&F32::from_bits(f.read(rs2))),
-                                    F32::neg(&F32::from_bits(f.read(rs3))),
+                            Single::decode(f.read(rs1))
+                                .mul_add_r(
+                                    -Single::decode(f.read(rs2)),
+                                    Single::decode(f.read(rs3)),
                                     rm,
                                 )
-                                .to_bits(),
+                                .bits(),
                         );
                         Ok(())
                     }
                     Rv32fOpcodeR::FnmaddS => {
                         f.write(
                             rd,
-                            F32::from_bits(f.read(rs1))
-                                .fused_mul_add(
-                                    F32::neg(&F32::from_bits(f.read(rs2))),
-                                    F32::from_bits(f.read(rs3)),
+                            (-Single::decode(f.read(rs1)))
+                                .mul_add_r(
+                                    Single::decode(f.read(rs2)),
+                                    -Single::decode(f.read(rs3)),
                                     rm,
                                 )
-                                .to_bits(),
+                                .bits(),
                         );
                         Ok(())
                     }
                     Rv32fOpcodeR::FaddS => {
                         f.write(
                             rd,
-                            F32::from_bits(f.read(rs1))
-                                .add(F32::from_bits(f.read(rs2)), rm)
-                                .to_bits(),
+                            Single::decode(f.read(rs1))
+                                .add_r(Single::decode(f.read(rs2)), rm)
+                                .bits(),
                         );
                         Ok(())
                     }
                     Rv32fOpcodeR::FsubS => {
                         f.write(
                             rd,
-                            F32::from_bits(f.read(rs1))
-                                .sub(F32::from_bits(f.read(rs2)), rm)
-                                .to_bits(),
+                            Single::decode(f.read(rs1))
+                                .sub_r(Single::decode(f.read(rs2)), rm)
+                                .bits(),
                         );
                         Ok(())
                     }
                     Rv32fOpcodeR::FmulS => {
                         f.write(
                             rd,
-                            F32::from_bits(f.read(rs1))
-                                .mul(F32::from_bits(f.read(rs2)), rm)
-                                .to_bits(),
+                            Single::decode(f.read(rs1))
+                                .mul_r(Single::decode(f.read(rs2)), rm)
+                                .bits(),
                         );
                         Ok(())
                     }
                     Rv32fOpcodeR::FdivS => {
                         f.write(
                             rd,
-                            F32::from_bits(f.read(rs1))
-                                .div(F32::from_bits(f.read(rs2)), rm)
-                                .to_bits(),
+                            Single::decode(f.read(rs1))
+                                .div_r(Single::decode(f.read(rs2)), rm)
+                                .bits(),
                         );
                         Ok(())
                     }
                     Rv32fOpcodeR::FsqrtS => {
-                        f.write(rd, F32::from_bits(f.read(rs1)).sqrt(rm).to_bits());
+                        // sqrt is not supported by the library
+                        f.write(
+                            rd,
+                            Single::from_f32(Single::decode(f.read(rs1)).to_f32().sqrt()).bits(),
+                        );
                         Ok(())
                     }
                     Rv32fOpcodeR::FsgnjS => {
-                        let sign = F32::from_bits(f.read(rs2)).sign();
-                        let mut ret = F32::from_bits(f.read(rs1));
-                        ret.set_sign(sign);
-                        f.write(rd, ret.to_bits());
+                        let sign = Single::decode(f.read(rs2));
+                        let ret = Single::decode(f.read(rs1)).copy_sign(sign);
+                        f.write(rd, ret.bits());
                         Ok(())
                     }
                     Rv32fOpcodeR::FsgnjnS => {
-                        let sign = F32::from_bits(f.read(rs2)).sign();
-                        let mut ret = F32::from_bits(f.read(rs1));
-                        ret.set_sign(!sign);
-                        f.write(rd, ret.to_bits());
+                        let sign = Single::decode(f.read(rs2));
+                        let ret = Single::decode(f.read(rs1)).copy_sign(-sign);
+                        f.write(rd, ret.bits());
                         Ok(())
                     }
                     Rv32fOpcodeR::FsgnjxS => {
-                        let mut ret = F32::from_bits(f.read(rs1));
-                        let sign = F32::from_bits(f.read(rs2)).sign() ^ ret.sign();
-                        ret.set_sign(sign);
-                        f.write(rd, ret.to_bits());
+                        let ret = Single::decode(f.read(rs1));
+                        let sign = Single::decode(f.read(rs2)).is_negative() ^ ret.is_negative();
+                        f.write(
+                            rd,
+                            (if sign == ret.is_negative() { ret } else { -ret }).bits(),
+                        );
                         Ok(())
                     }
                     Rv32fOpcodeR::FminS => {
-                        let val1 = F32::from_bits(f.read(rs1));
-                        let val2 = F32::from_bits(f.read(rs2));
-                        let min = if val1.lt(val2) { val1 } else { val2 };
-                        f.write(rd, min.to_bits());
+                        let val1 = Single::decode(f.read(rs1));
+                        let val2 = Single::decode(f.read(rs2));
+                        let min = if val1 < val2 { val1 } else { val2 };
+                        f.write(rd, min.bits());
                         Ok(())
                     }
                     Rv32fOpcodeR::FmaxS => {
-                        let val1 = F32::from_bits(f.read(rs1));
-                        let val2 = F32::from_bits(f.read(rs2));
-                        let max = if val1.lt(val2) { val2 } else { val1 };
-                        f.write(rd, max.to_bits());
+                        let val1 = Single::decode(f.read(rs1));
+                        let val2 = Single::decode(f.read(rs2));
+                        let max = if val1 < val2 { val2 } else { val1 };
+                        f.write(rd, max.bits());
                         Ok(())
                     }
                     Rv32fOpcodeR::FcvtWs => {
-                        x.writei(rd, F32::from_bits(f.read(rs1)).to_i32(rm, false) as i64);
+                        x.writei(
+                            rd,
+                            Single::decode(f.read(rs1))
+                                .to_u128_r(32, rm, &mut false)
+                                .value as i64,
+                        );
                         Ok(())
                     }
                     Rv32fOpcodeR::FcvtWuS => {
                         x.writei(
                             rd,
-                            F32::from_bits(f.read(rs1)).to_u32(rm, false) as i32 as i64,
+                            Single::decode(f.read(rs1))
+                                .to_u128_r(32, rm, &mut false)
+                                .value as i32 as i64,
                         );
                         Ok(())
                     }
@@ -227,43 +274,43 @@ impl Executor for Rv32fExecutor {
                         Ok(())
                     }
                     Rv32fOpcodeR::FeqS => {
-                        let val1 = F32::from_bits(f.read(rs1));
-                        let val2 = F32::from_bits(f.read(rs2));
-                        let ret = if val1.eq(val2) { 1 } else { 0 };
+                        let val1 = Single::decode(f.read(rs1));
+                        let val2 = Single::decode(f.read(rs2));
+                        let ret = u32::from(val1 == val2);
                         f.write(rd, ret);
                         Ok(())
                     }
                     Rv32fOpcodeR::FltS => {
-                        let val1 = F32::from_bits(f.read(rs1));
-                        let val2 = F32::from_bits(f.read(rs2));
-                        let ret = if val1.lt(val2) { 1 } else { 0 };
+                        let val1 = Single::decode(f.read(rs1));
+                        let val2 = Single::decode(f.read(rs2));
+                        let ret = u32::from(val1 < val2);
                         f.write(rd, ret);
                         Ok(())
                     }
                     Rv32fOpcodeR::FleS => {
-                        let val1 = F32::from_bits(f.read(rs1));
-                        let val2 = F32::from_bits(f.read(rs2));
-                        let ret = if val1.le(val2) { 1 } else { 0 };
+                        let val1 = Single::decode(f.read(rs1));
+                        let val2 = Single::decode(f.read(rs2));
+                        let ret = u32::from(val1 <= val2);
                         f.write(rd, ret);
                         Ok(())
                     }
                     Rv32fOpcodeR::FclassS => {
-                        let val = F32::from_bits(f.read(rs1));
-                        let class = if val.is_negative_infinity() {
+                        let val = Single::decode(f.read(rs1));
+                        let class = if val.is_negative() && val.is_infinite() {
                             0
-                        } else if val.is_negative_normal() {
+                        } else if val.is_negative() && val.is_normal() {
                             1
-                        } else if val.is_negative_subnormal() {
+                        } else if val.is_negative() && val.is_denormal() {
                             2
-                        } else if val.is_negative_zero() {
+                        } else if val.is_neg_zero() {
                             3
-                        } else if val.is_positive_zero() {
+                        } else if val.is_pos_zero() {
                             4
-                        } else if val.is_positive_subnormal() {
+                        } else if !val.is_negative() && val.is_denormal() {
                             5
-                        } else if val.is_positive_normal() {
+                        } else if !val.is_negative() && val.is_normal() {
                             6
-                        } else if val.is_positive_infinity() {
+                        } else if !val.is_negative() && val.is_infinite() {
                             7
                         } else {
                             // TODO: supports signaling NaN / quiet NaN
@@ -273,11 +320,14 @@ impl Executor for Rv32fExecutor {
                         Ok(())
                     }
                     Rv32fOpcodeR::FcvtSw => {
-                        f.write(rd, F32::from_i32(x.readi(rs1) as i32, rm).to_bits());
+                        f.write(
+                            rd,
+                            Single::from_i128_r(x.readi(rs1) as i32 as i128, rm).bits(),
+                        );
                         Ok(())
                     }
                     Rv32fOpcodeR::FcvtSWu => {
-                        f.write(rd, F32::from_u32(x.readi(rs1) as u32, rm).to_bits());
+                        f.write(rd, Single::from_u128_r(x.readi(rs1) as u128, rm).bits());
                         Ok(())
                     }
                     Rv32fOpcodeR::FmvWx => {
@@ -294,10 +344,7 @@ impl Executor for Rv32fExecutor {
                 imm,
             } => match opcode {
                 Rv32fOpcodeI::Flw => {
-                    f.write(
-                        rd,
-                        bus.load32(x.readi(rs1).wrapping_add(imm as i64) as u64) as u32,
-                    );
+                    f.write(rd, bus.load32(x.readi(rs1).wrapping_add(imm as i64) as u64));
                     Ok(())
                 }
             },
