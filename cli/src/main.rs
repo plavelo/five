@@ -1,9 +1,9 @@
-use clap::Clap;
+use clap::Parser;
 use five::emulator::Emulator;
 use std::fs::File;
 use std::io::Result;
 
-#[derive(Clap)]
+#[derive(Parser)]
 struct Opts {
     input: String,
 }

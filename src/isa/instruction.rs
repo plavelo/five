@@ -7,6 +7,7 @@ pub mod rv64m;
 pub mod zicsr;
 pub mod zifencei;
 
+use crate::isa::register::register_name;
 use std::fmt;
 
 #[derive(Debug, PartialEq)]
@@ -72,8 +73,13 @@ impl<
                 funct7,
             } => write!(
                 f,
-                "Instruction::TypeR {{ opcode: {}, rd: {}, funct3: {}, rs1: {}, rs2: {}, funct7: {} }}",
-                opcode, rd, funct3, rs1, rs2, funct7,
+                "{}, rd: {}, funct3: {}, rs1: {}, rs2: {}, funct7: {}",
+                opcode,
+                register_name(*rd),
+                funct3,
+                register_name(*rs1),
+                register_name(*rs2),
+                funct7,
             ),
             Self::TypeI {
                 opcode,
@@ -83,8 +89,12 @@ impl<
                 imm,
             } => write!(
                 f,
-                "Instruction::TypeI {{ opcode: {}, rd: {}, funct3: {}, rs1: {}, imm: {} }}",
-                opcode, rd, funct3, rs1, imm,
+                "{}, rd: {}, funct3: {}, rs1: {}, imm: {:x}",
+                opcode,
+                register_name(*rd),
+                funct3,
+                register_name(*rs1),
+                imm,
             ),
             Self::TypeS {
                 opcode,
@@ -94,8 +104,12 @@ impl<
                 imm,
             } => write!(
                 f,
-                "Instruction::TypeS {{ opcode: {}, funct3: {}, rs1: {}, rs2: {}, imm: {} }}",
-                opcode, funct3, rs1, rs2, imm,
+                "{}, funct3: {}, rs1: {}, rs2: {}, imm: {:x}",
+                opcode,
+                funct3,
+                register_name(*rs1),
+                register_name(*rs2),
+                imm,
             ),
             Self::TypeB {
                 opcode,
@@ -105,19 +119,19 @@ impl<
                 imm,
             } => write!(
                 f,
-                "Instruction::TypeB {{ opcode: {}, funct3: {}, rs1: {}, rs2: {}, imm: {} }}",
-                opcode, funct3, rs1, rs2, imm,
+                "{}, funct3: {}, rs1: {}, rs2: {}, imm: {:x}",
+                opcode,
+                funct3,
+                register_name(*rs1),
+                register_name(*rs2),
+                imm,
             ),
-            Self::TypeU { opcode, rd, imm } => write!(
-                f,
-                "Instruction::TypeU {{ opcode: {}, rd: {}, imm: {} }}",
-                opcode, rd, imm,
-            ),
-            Self::TypeJ { opcode, rd, imm } => write!(
-                f,
-                "Instruction::TypeJ {{ opcode: {}, rd: {}, imm: {} }}",
-                opcode, rd, imm,
-            ),
+            Self::TypeU { opcode, rd, imm } => {
+                write!(f, "{}, rd: {}, imm: {:x}", opcode, register_name(*rd), imm,)
+            }
+            Self::TypeJ { opcode, rd, imm } => {
+                write!(f, "{}, rd: {}, imm: {:x}", opcode, register_name(*rd), imm,)
+            }
         }
     }
 }

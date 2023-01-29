@@ -17,16 +17,16 @@ pub enum Rv32iOpcodeR {
 impl fmt::Display for Rv32iOpcodeR {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Self::Sll => f.write_str("Rv32i::Sll"),
-            Self::Srl => f.write_str("Rv32i::Srl"),
-            Self::Sra => f.write_str("Rv32i::Sra"),
-            Self::Add => f.write_str("Rv32i::Add"),
-            Self::Sub => f.write_str("Rv32i::Sub"),
-            Self::Xor => f.write_str("Rv32i::Xor"),
-            Self::Or => f.write_str("Rv32i::Or"),
-            Self::And => f.write_str("Rv32i::And"),
-            Self::Slt => f.write_str("Rv32i::Slt"),
-            Self::Sltu => f.write_str("Rv32i::Sltu"),
+            Self::Sll => f.write_str("sll"),
+            Self::Srl => f.write_str("srl"),
+            Self::Sra => f.write_str("sra"),
+            Self::Add => f.write_str("add"),
+            Self::Sub => f.write_str("sub"),
+            Self::Xor => f.write_str("xor"),
+            Self::Or => f.write_str("or"),
+            Self::And => f.write_str("and"),
+            Self::Slt => f.write_str("slt"),
+            Self::Sltu => f.write_str("sltu"),
         }
     }
 }
@@ -56,24 +56,24 @@ pub enum Rv32iOpcodeI {
 impl fmt::Display for Rv32iOpcodeI {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Self::Slli => f.write_str("Rv32i::Slli"),
-            Self::Srli => f.write_str("Rv32i::Srli"),
-            Self::Srai => f.write_str("Rv32i::Srai"),
-            Self::Addi => f.write_str("Rv32i::Addi"),
-            Self::Xori => f.write_str("Rv32i::Xori"),
-            Self::Ori => f.write_str("Rv32i::Ori"),
-            Self::Andi => f.write_str("Rv32i::Andi"),
-            Self::Slti => f.write_str("Rv32i::Slti"),
-            Self::Sltiu => f.write_str("Rv32i::Sltiu"),
-            Self::Jalr => f.write_str("Rv32i::Jalr"),
-            Self::Fence => f.write_str("Rv32i::Fence"),
-            Self::Ecall => f.write_str("Rv32i::Ecall"),
-            Self::Ebreak => f.write_str("Rv32i::Ebreak"),
-            Self::Lb => f.write_str("Rv32i::Lb"),
-            Self::Lh => f.write_str("Rv32i::Lh"),
-            Self::Lbu => f.write_str("Rv32i::Lbu"),
-            Self::Lhu => f.write_str("Rv32i::Lhu"),
-            Self::Lw => f.write_str("Rv32i::Lw"),
+            Self::Slli => f.write_str("slli"),
+            Self::Srli => f.write_str("srli"),
+            Self::Srai => f.write_str("srai"),
+            Self::Addi => f.write_str("addi"),
+            Self::Xori => f.write_str("xori"),
+            Self::Ori => f.write_str("ori"),
+            Self::Andi => f.write_str("andi"),
+            Self::Slti => f.write_str("slti"),
+            Self::Sltiu => f.write_str("sltiu"),
+            Self::Jalr => f.write_str("jalr"),
+            Self::Fence => f.write_str("fence"),
+            Self::Ecall => f.write_str("ecall"),
+            Self::Ebreak => f.write_str("ebreak"),
+            Self::Lb => f.write_str("lb"),
+            Self::Lh => f.write_str("lh"),
+            Self::Lbu => f.write_str("lbu"),
+            Self::Lhu => f.write_str("lhu"),
+            Self::Lw => f.write_str("lw"),
         }
     }
 }
@@ -88,9 +88,9 @@ pub enum Rv32iOpcodeS {
 impl fmt::Display for Rv32iOpcodeS {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Self::Sb => f.write_str("Rv32i::Sb"),
-            Self::Sh => f.write_str("Rv32i::Sh"),
-            Self::Sw => f.write_str("Rv32i::Sw"),
+            Self::Sb => f.write_str("sb"),
+            Self::Sh => f.write_str("sh"),
+            Self::Sw => f.write_str("sw"),
         }
     }
 }
@@ -108,12 +108,12 @@ pub enum Rv32iOpcodeB {
 impl fmt::Display for Rv32iOpcodeB {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Self::Beq => f.write_str("Rv32i::Beq"),
-            Self::Bne => f.write_str("Rv32i::Bne"),
-            Self::Blt => f.write_str("Rv32i::Blt"),
-            Self::Bge => f.write_str("Rv32i::Bge"),
-            Self::Bltu => f.write_str("Rv32i::Bltu"),
-            Self::Bgeu => f.write_str("Rv32i::Bgeu"),
+            Self::Beq => f.write_str("beq"),
+            Self::Bne => f.write_str("bne"),
+            Self::Blt => f.write_str("blt"),
+            Self::Bge => f.write_str("bge"),
+            Self::Bltu => f.write_str("bltu"),
+            Self::Bgeu => f.write_str("bgeu"),
         }
     }
 }
@@ -127,8 +127,8 @@ pub enum Rv32iOpcodeU {
 impl fmt::Display for Rv32iOpcodeU {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Self::Lui => f.write_str("Rv32i::Lui"),
-            Self::Auipc => f.write_str("Rv32i::Auipc"),
+            Self::Lui => f.write_str("lui"),
+            Self::Auipc => f.write_str("auipc"),
         }
     }
 }
@@ -141,7 +141,7 @@ pub enum Rv32iOpcodeJ {
 impl fmt::Display for Rv32iOpcodeJ {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Self::Jal => f.write_str("Rv32i::Jal"),
+            Self::Jal => f.write_str("jal"),
         }
     }
 }

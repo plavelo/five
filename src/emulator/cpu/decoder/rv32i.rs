@@ -135,6 +135,7 @@ impl Decoder for Rv32iDecoder {
 }
 
 #[cfg(test)]
+#[allow(clippy::unusual_byte_groupings)]
 mod tests {
     use super::*;
 

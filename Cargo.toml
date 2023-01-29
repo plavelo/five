@@ -2,7 +2,7 @@
 name = "five"
 version = "0.1.1"
 authors = ["plavelo <plastic.velocity@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

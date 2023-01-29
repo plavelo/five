@@ -31,30 +31,30 @@ pub enum Rv32fOpcodeR {
 impl fmt::Display for Rv32fOpcodeR {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Self::FmaddS => f.write_str("Rv32f::FmaddS"),
-            Self::FmsubS => f.write_str("Rv32f::FmsubS"),
-            Self::FnmsubS => f.write_str("Rv32f::FnmsubS"),
-            Self::FnmaddS => f.write_str("Rv32f::FnmaddS"),
-            Self::FaddS => f.write_str("Rv32f::FaddS"),
-            Self::FsubS => f.write_str("Rv32f::FsubS"),
-            Self::FmulS => f.write_str("Rv32f::FmulS"),
-            Self::FdivS => f.write_str("Rv32f::FdivS"),
-            Self::FsqrtS => f.write_str("Rv32f::FsqrtS"),
-            Self::FsgnjS => f.write_str("Rv32f::FsgnjS"),
-            Self::FsgnjnS => f.write_str("Rv32f::FsgnjnS"),
-            Self::FsgnjxS => f.write_str("Rv32f::FsgnjxS"),
-            Self::FminS => f.write_str("Rv32f::FminS"),
-            Self::FmaxS => f.write_str("Rv32f::FmaxS"),
-            Self::FcvtWs => f.write_str("Rv32f::FcvtWS"),
-            Self::FcvtWuS => f.write_str("Rv32f::FcvtWuS"),
-            Self::FmvXw => f.write_str("Rv32f::FmvXW"),
-            Self::FeqS => f.write_str("Rv32f::FeqS"),
-            Self::FltS => f.write_str("Rv32f::FltS"),
-            Self::FleS => f.write_str("Rv32f::FleS"),
-            Self::FclassS => f.write_str("Rv32f::FclassS"),
-            Self::FcvtSw => f.write_str("Rv32f::FcvtSW"),
-            Self::FcvtSWu => f.write_str("Rv32f::FcvatSWu"),
-            Self::FmvWx => f.write_str("Rv32f::FmvWX"),
+            Self::FmaddS => f.write_str("fmadd.s"),
+            Self::FmsubS => f.write_str("fmsub.s"),
+            Self::FnmsubS => f.write_str("fnmsub.s"),
+            Self::FnmaddS => f.write_str("fnmadd.s"),
+            Self::FaddS => f.write_str("fadd.s"),
+            Self::FsubS => f.write_str("fsub.s"),
+            Self::FmulS => f.write_str("fmul.s"),
+            Self::FdivS => f.write_str("fdiv.s"),
+            Self::FsqrtS => f.write_str("fsqrt.s"),
+            Self::FsgnjS => f.write_str("fsgnj.s"),
+            Self::FsgnjnS => f.write_str("fsgnjn.s"),
+            Self::FsgnjxS => f.write_str("fsgnjx.s"),
+            Self::FminS => f.write_str("fmin.s"),
+            Self::FmaxS => f.write_str("fmax.s"),
+            Self::FcvtWs => f.write_str("fcvt.w.s"),
+            Self::FcvtWuS => f.write_str("fcvt.wu.s"),
+            Self::FmvXw => f.write_str("fmv.x.w"),
+            Self::FeqS => f.write_str("feq.s"),
+            Self::FltS => f.write_str("flt.s"),
+            Self::FleS => f.write_str("fle.s"),
+            Self::FclassS => f.write_str("fclass.s"),
+            Self::FcvtSw => f.write_str("fcvt.s.w"),
+            Self::FcvtSWu => f.write_str("fcvat.s.wu"),
+            Self::FmvWx => f.write_str("fmv.w.x"),
         }
     }
 }
@@ -62,9 +62,43 @@ impl fmt::Display for Rv32fOpcodeR {
 pub enum Rv32fOpcodeI {
     Flw,
 }
+
+impl fmt::Display for Rv32fOpcodeI {
+    fn fmt(&self, _: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Result::Err(fmt::Error)
+    }
+}
+
 pub enum Rv32fOpcodeS {
     Fsw,
 }
+
+impl fmt::Display for Rv32fOpcodeS {
+    fn fmt(&self, _: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Result::Err(fmt::Error)
+    }
+}
+
 pub enum Rv32fOpcodeB {}
+
+impl fmt::Display for Rv32fOpcodeB {
+    fn fmt(&self, _: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Result::Err(fmt::Error)
+    }
+}
+
 pub enum Rv32fOpcodeU {}
+
+impl fmt::Display for Rv32fOpcodeU {
+    fn fmt(&self, _: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Result::Err(fmt::Error)
+    }
+}
+
 pub enum Rv32fOpcodeJ {}
+
+impl fmt::Display for Rv32fOpcodeJ {
+    fn fmt(&self, _: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Result::Err(fmt::Error)
+    }
+}

@@ -7,23 +7,23 @@ pub enum Cause {
 
 pub enum Interrupt {
     #[allow(dead_code)]
-    UserSoftwareInterrupt,
+    UserSoftware,
     #[allow(dead_code)]
-    SupervisorSoftwareInterrupt,
+    SupervisorSoftware,
     #[allow(dead_code)]
-    MachineSoftwareInterrupt,
+    MachineSoftware,
     #[allow(dead_code)]
-    UserTimerInterrupt,
+    UserTimer,
     #[allow(dead_code)]
-    SupervisorTimerInterrupt,
+    SupervisorTimer,
     #[allow(dead_code)]
-    MachineTimerInterrupt,
+    MachineTimer,
     #[allow(dead_code)]
-    UserExternalInterrupt,
+    UserExternal,
     #[allow(dead_code)]
-    SupervisorExternalInterrupt,
+    SupervisorExternal,
     #[allow(dead_code)]
-    MachineExternalInterrupt,
+    MachineExternal,
 }
 
 pub enum Exception {
@@ -54,9 +54,9 @@ pub enum Exception {
 }
 
 pub enum ExceptionReturn {
-    UserModeExceptionReturn,
-    SupervisorModeExceptionReturn,
-    MachineModeExceptionReturn,
+    User,
+    Supervisor,
+    Machine,
 }
 
 impl Cause {
@@ -84,15 +84,15 @@ impl Cause {
 impl Interrupt {
     pub fn to_primitive(&self) -> u64 {
         match self {
-            Self::UserSoftwareInterrupt => 1u64 << 63,
-            Self::SupervisorSoftwareInterrupt => 1u64 << 63 | 1,
-            Self::MachineSoftwareInterrupt => 1u64 << 63 | 3,
-            Self::UserTimerInterrupt => 1u64 << 63 | 4,
-            Self::SupervisorTimerInterrupt => 1u64 << 63 | 5,
-            Self::MachineTimerInterrupt => 1u64 << 63 | 7,
-            Self::UserExternalInterrupt => 1u64 << 63 | 8,
-            Self::SupervisorExternalInterrupt => 1u64 << 63 | 9,
-            Self::MachineExternalInterrupt => 1u64 << 63 | 11,
+            Self::UserSoftware => 1u64 << 63,
+            Self::SupervisorSoftware => 1u64 << 63 | 1,
+            Self::MachineSoftware => 1u64 << 63 | 3,
+            Self::UserTimer => 1u64 << 63 | 4,
+            Self::SupervisorTimer => 1u64 << 63 | 5,
+            Self::MachineTimer => 1u64 << 63 | 7,
+            Self::UserExternal => 1u64 << 63 | 8,
+            Self::SupervisorExternal => 1u64 << 63 | 9,
+            Self::MachineExternal => 1u64 << 63 | 11,
         }
     }
 

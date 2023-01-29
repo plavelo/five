@@ -58,28 +58,22 @@ impl Executor for PrivilegedExecutor {
         {
             match opcode {
                 PrivilegedOpcodeR::Uret => {
-                    if prv == &PrivilegeMode::UserMode {
-                        Err(Cause::ExceptionReturn(
-                            ExceptionReturn::UserModeExceptionReturn,
-                        ))
+                    if prv == &PrivilegeMode::User {
+                        Err(Cause::ExceptionReturn(ExceptionReturn::User))
                     } else {
                         Err(Cause::Exception(Exception::IllegalInstruction))
                     }
                 }
                 PrivilegedOpcodeR::Sret => {
-                    if prv == &PrivilegeMode::SupervisorMode {
-                        Err(Cause::ExceptionReturn(
-                            ExceptionReturn::SupervisorModeExceptionReturn,
-                        ))
+                    if prv == &PrivilegeMode::Supervisor {
+                        Err(Cause::ExceptionReturn(ExceptionReturn::Supervisor))
                     } else {
                         Err(Cause::Exception(Exception::IllegalInstruction))
                     }
                 }
                 PrivilegedOpcodeR::Mret => {
-                    if prv == &PrivilegeMode::MachineMode {
-                        Err(Cause::ExceptionReturn(
-                            ExceptionReturn::MachineModeExceptionReturn,
-                        ))
+                    if prv == &PrivilegeMode::Machine {
+                        Err(Cause::ExceptionReturn(ExceptionReturn::Machine))
                     } else {
                         Err(Cause::Exception(Exception::IllegalInstruction))
                     }

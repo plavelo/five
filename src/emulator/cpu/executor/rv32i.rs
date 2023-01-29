@@ -3,7 +3,7 @@ use crate::{
         bus::SystemBus,
         cpu::{
             csr::ControlAndStatusRegister,
-            executor::{Executor, MASK_5BIT},
+            executor::{extend_sign, Executor, MASK_5BIT, MASK_6BIT},
             f::FloatingPointRegister,
             pc::ProgramCounter,
             x::IntegerRegister,
@@ -91,11 +91,11 @@ impl Executor for Rv32iExecutor {
                     Ok(())
                 }
                 Rv32iOpcodeR::Slt => {
-                    x.writeu(rd, if x.readi(rs1) < x.readi(rs2) { 1 } else { 0 });
+                    x.writeu(rd, u64::from(x.readi(rs1) < x.readi(rs2)));
                     Ok(())
                 }
                 Rv32iOpcodeR::Sltu => {
-                    x.writeu(rd, if x.readu(rs1) < x.readu(rs2) { 1 } else { 0 });
+                    x.writeu(rd, u64::from(x.readu(rs1) < x.readu(rs2)));
                     Ok(())
                 }
             },
@@ -107,15 +107,15 @@ impl Executor for Rv32iExecutor {
                 imm,
             } => match opcode {
                 Rv32iOpcodeI::Slli => {
-                    x.writeu(rd, x.readu(rs1) << (imm & MASK_5BIT));
+                    x.writeu(rd, x.readu(rs1) << (imm & MASK_6BIT));
                     Ok(())
                 }
                 Rv32iOpcodeI::Srli => {
-                    x.writeu(rd, x.readu(rs1) >> (imm & MASK_5BIT));
+                    x.writeu(rd, x.readu(rs1) >> (imm & MASK_6BIT));
                     Ok(())
                 }
                 Rv32iOpcodeI::Srai => {
-                    x.writei(rd, x.readi(rs1) >> (imm & MASK_5BIT));
+                    x.writei(rd, x.readi(rs1) >> (imm & MASK_6BIT));
                     Ok(())
                 }
                 Rv32iOpcodeI::Addi => {
@@ -135,11 +135,11 @@ impl Executor for Rv32iExecutor {
                     Ok(())
                 }
                 Rv32iOpcodeI::Slti => {
-                    x.writeu(rd, if x.readi(rs1) < imm as i64 { 1 } else { 0 });
+                    x.writeu(rd, u64::from(x.readi(rs1) < imm as i64));
                     Ok(())
                 }
                 Rv32iOpcodeI::Sltiu => {
-                    x.writeu(rd, if x.readu(rs1) < imm { 1 } else { 0 });
+                    x.writeu(rd, u64::from(x.readu(rs1) < imm));
                     Ok(())
                 }
                 Rv32iOpcodeI::Jalr => {
@@ -150,13 +150,13 @@ impl Executor for Rv32iExecutor {
                 }
                 Rv32iOpcodeI::Fence => Ok(()), // not yet supported
                 Rv32iOpcodeI::Ecall => match prv {
-                    PrivilegeMode::UserMode => {
+                    PrivilegeMode::User => {
                         Err(Cause::Exception(Exception::EnvironmentCallFromUserMode))
                     }
-                    PrivilegeMode::SupervisorMode => Err(Cause::Exception(
+                    PrivilegeMode::Supervisor => Err(Cause::Exception(
                         Exception::EnvironmentCallFromSupervisorMode,
                     )),
-                    PrivilegeMode::MachineMode => {
+                    PrivilegeMode::Machine => {
                         Err(Cause::Exception(Exception::EnvironmentCallFromMachineMode))
                     }
                 },
@@ -272,11 +272,17 @@ impl Executor for Rv32iExecutor {
             },
             Instruction::TypeU { opcode, rd, imm } => match opcode {
                 Rv32iOpcodeU::Lui => {
-                    x.writeu(rd, imm);
+                    x.writei(
+                        rd,
+                        ((extend_sign(imm, 20) << 12) as u64 & 0xfffffffffffff000) as i64,
+                    );
                     Ok(())
                 }
                 Rv32iOpcodeU::Auipc => {
-                    x.writeu(rd, pc.read().wrapping_add(imm));
+                    x.writei(
+                        rd,
+                        (pc.read() as i64).wrapping_add(extend_sign(imm, 20) << 12),
+                    );
                     Ok(())
                 }
             },

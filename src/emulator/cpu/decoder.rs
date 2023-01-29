@@ -114,7 +114,7 @@ pub trait Decoder {
             let rs1 = ((instruction >> 15) & MASK_5BIT) as usize;
             let rs2 = ((instruction >> 20) & MASK_5BIT) as usize;
             let imm = ((instruction & 0xfe000000) as i32 >> 20) as u64
-                | ((instruction >> 7) & 0x1f) as u64;
+                | ((instruction >> 7) & MASK_5BIT) as u64;
             Instruction::TypeS {
                 opcode: o,
                 funct3,
@@ -173,7 +173,7 @@ pub trait Decoder {
     > {
         opcode.map(|o| {
             let rd = ((instruction >> 7) & MASK_5BIT) as usize;
-            let imm = (instruction & 0xfffff000) as u64;
+            let imm = ((instruction & 0xfffff000) >> 12) as u64;
             Instruction::TypeU { opcode: o, rd, imm }
         })
     }

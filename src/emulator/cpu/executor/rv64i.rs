@@ -3,7 +3,7 @@ use crate::{
         bus::SystemBus,
         cpu::{
             csr::ControlAndStatusRegister,
-            executor::{Executor, MASK_5BIT},
+            executor::{extend_sign, Executor, MASK_5BIT, MASK_6BIT},
             f::FloatingPointRegister,
             pc::ProgramCounter,
             x::IntegerRegister,
@@ -83,16 +83,19 @@ impl Executor for Rv64iExecutor {
             } => match opcode {
                 Rv64iOpcodeI::Slliw => x.writei(
                     rd,
-                    ((x.readu(rs1) as u32) << (imm & MASK_5BIT)) as i32 as i64,
+                    ((x.readu(rs1) as u32) << (imm & MASK_6BIT)) as i32 as i64,
                 ),
                 Rv64iOpcodeI::Srliw => x.writei(
                     rd,
-                    ((x.readu(rs1) as u32) >> (imm & MASK_5BIT)) as i32 as i64,
+                    ((x.readu(rs1) as u32) >> (imm & MASK_6BIT)) as i32 as i64,
                 ),
                 Rv64iOpcodeI::Sraiw => {
-                    x.writei(rd, ((x.readi(rs1) as i32) >> (imm & MASK_5BIT)) as i64)
+                    x.writei(rd, ((x.readi(rs1) as i32) >> (imm & MASK_6BIT)) as i64)
                 }
-                Rv64iOpcodeI::Addiw => x.writei(rd, x.readu(rs1).wrapping_add(imm) as i32 as i64),
+                Rv64iOpcodeI::Addiw => x.writei(
+                    rd,
+                    x.readi(rs1).wrapping_add(extend_sign(imm, 12)) as u32 as i32 as i64,
+                ),
                 Rv64iOpcodeI::Lwu => x.writeu(
                     rd,
                     bus.load32(x.readi(rs1).wrapping_add(imm as i64) as u64) as u64,

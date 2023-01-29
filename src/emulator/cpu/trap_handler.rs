@@ -23,11 +23,11 @@ fn delegated_privilege_mode(csr: &mut ControlAndStatusRegister, cause: &Cause) -
     };
     let code = cause.exception_code();
     if ((csr.csrrs(m_addr, 0) >> code) & 1) == 0 {
-        PrivilegeMode::MachineMode
+        PrivilegeMode::Machine
     } else if ((csr.csrrs(s_addr, 0) >> code) & 1) == 0 {
-        PrivilegeMode::SupervisorMode
+        PrivilegeMode::Supervisor
     } else {
-        PrivilegeMode::UserMode
+        PrivilegeMode::User
     }
 }
 
@@ -38,9 +38,9 @@ fn select_address(
     u_address: u64,
 ) -> u64 {
     match privilege_mode {
-        PrivilegeMode::MachineMode => m_address,
-        PrivilegeMode::SupervisorMode => s_address,
-        PrivilegeMode::UserMode => u_address,
+        PrivilegeMode::Machine => m_address,
+        PrivilegeMode::Supervisor => s_address,
+        PrivilegeMode::User => u_address,
     }
 }
 
@@ -51,9 +51,9 @@ fn select_status_field(
     u_field: Range<usize>,
 ) -> Range<usize> {
     match privilege_mode {
-        PrivilegeMode::MachineMode => m_field,
-        PrivilegeMode::SupervisorMode => s_field,
-        PrivilegeMode::UserMode => u_field,
+        PrivilegeMode::Machine => m_field,
+        PrivilegeMode::Supervisor => s_field,
+        PrivilegeMode::User => u_field,
     }
 }
 
@@ -120,25 +120,25 @@ fn handle_trap(
 
     // set trap value register
     let tval_address = select_address(&next_privilege_mode, MTVAL, STVAL, UTVAL);
-    let tval = select_tval(&cause, pc_address, instruction);
+    let tval = select_tval(cause, pc_address, instruction);
     csr.csrrw(tval_address, tval);
 
     // set previous privilege
     let status_address = select_address(&next_privilege_mode, MSTATUS, SSTATUS, USTATUS);
     match next_privilege_mode {
-        PrivilegeMode::MachineMode => update_status_field(
+        PrivilegeMode::Machine => update_status_field(
             csr,
             status_address,
             &STATUS_MPP,
             current_privilege_mode as u64,
         ),
-        PrivilegeMode::SupervisorMode => update_status_field(
+        PrivilegeMode::Supervisor => update_status_field(
             csr,
             status_address,
             &STATUS_SPP,
             current_privilege_mode as u64,
         ),
-        PrivilegeMode::UserMode => {}
+        PrivilegeMode::User => {}
     }
 
     // set previous interrupt enable
@@ -179,20 +179,20 @@ fn handle_exception_return(
 
     // read previous privilege
     let pp = match current_privilege_mode {
-        PrivilegeMode::MachineMode => {
+        PrivilegeMode::Machine => {
             PrivilegeMode::from_primitive(read_status_field(csr, status_address, &STATUS_MPP))
         }
-        PrivilegeMode::SupervisorMode => {
+        PrivilegeMode::Supervisor => {
             PrivilegeMode::from_primitive(read_status_field(csr, status_address, &STATUS_SPP))
         }
-        PrivilegeMode::UserMode => PrivilegeMode::UserMode,
+        PrivilegeMode::User => PrivilegeMode::User,
     };
 
     // set 0 to previous privilege
     match current_privilege_mode {
-        PrivilegeMode::MachineMode => update_status_field(csr, status_address, &STATUS_MPP, 0),
-        PrivilegeMode::SupervisorMode => update_status_field(csr, status_address, &STATUS_SPP, 0),
-        PrivilegeMode::UserMode => {}
+        PrivilegeMode::Machine => update_status_field(csr, status_address, &STATUS_MPP, 0),
+        PrivilegeMode::Supervisor => update_status_field(csr, status_address, &STATUS_SPP, 0),
+        PrivilegeMode::User => {}
     };
 
     // read exception program counter
