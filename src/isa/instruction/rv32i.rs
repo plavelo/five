@@ -1,6 +1,6 @@
 use std::fmt;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Rv32iOpcodeR {
     Sll,
     Srl,
@@ -16,7 +16,7 @@ pub enum Rv32iOpcodeR {
 
 impl fmt::Display for Rv32iOpcodeR {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
+        match self {
             Self::Sll => f.write_str("sll"),
             Self::Srl => f.write_str("srl"),
             Self::Sra => f.write_str("sra"),
@@ -31,7 +31,7 @@ impl fmt::Display for Rv32iOpcodeR {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Rv32iOpcodeI {
     Slli,
     Srli,
@@ -55,7 +55,7 @@ pub enum Rv32iOpcodeI {
 
 impl fmt::Display for Rv32iOpcodeI {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
+        match self {
             Self::Slli => f.write_str("slli"),
             Self::Srli => f.write_str("srli"),
             Self::Srai => f.write_str("srai"),
@@ -78,7 +78,7 @@ impl fmt::Display for Rv32iOpcodeI {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Rv32iOpcodeS {
     Sb,
     Sh,
@@ -87,7 +87,7 @@ pub enum Rv32iOpcodeS {
 
 impl fmt::Display for Rv32iOpcodeS {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
+        match self {
             Self::Sb => f.write_str("sb"),
             Self::Sh => f.write_str("sh"),
             Self::Sw => f.write_str("sw"),
@@ -95,7 +95,7 @@ impl fmt::Display for Rv32iOpcodeS {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Rv32iOpcodeB {
     Beq,
     Bne,
@@ -107,7 +107,7 @@ pub enum Rv32iOpcodeB {
 
 impl fmt::Display for Rv32iOpcodeB {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
+        match self {
             Self::Beq => f.write_str("beq"),
             Self::Bne => f.write_str("bne"),
             Self::Blt => f.write_str("blt"),
@@ -118,7 +118,7 @@ impl fmt::Display for Rv32iOpcodeB {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Rv32iOpcodeU {
     Lui,
     Auipc,
@@ -126,21 +126,21 @@ pub enum Rv32iOpcodeU {
 
 impl fmt::Display for Rv32iOpcodeU {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
+        match self {
             Self::Lui => f.write_str("lui"),
             Self::Auipc => f.write_str("auipc"),
         }
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Rv32iOpcodeJ {
     Jal,
 }
 
 impl fmt::Display for Rv32iOpcodeJ {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
+        match self {
             Self::Jal => f.write_str("jal"),
         }
     }

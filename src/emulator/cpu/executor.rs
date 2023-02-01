@@ -20,18 +20,6 @@ use crate::{
         privileged::{cause::Cause, mode::PrivilegeMode},
     },
 };
-use std::mem::size_of_val;
-
-const MASK_3BIT: u64 = 0b111;
-const MASK_5BIT: u64 = 0b11111;
-const MASK_6BIT: u64 = 0b111111;
-const MASK_12BIT: u64 = 0b111111111111;
-
-pub fn extend_sign(value: u64, nbits: u32) -> i64 {
-    let target = value as i64;
-    let notherbits = size_of_val(&target) as u32 * 8 - nbits;
-    target.wrapping_shl(notherbits).wrapping_shr(notherbits)
-}
 
 pub trait Executor {
     type OpcodeR;

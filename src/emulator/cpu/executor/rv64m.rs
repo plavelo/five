@@ -63,7 +63,7 @@ impl Executor for Rv64mExecutor {
                     x.writei(
                         rd,
                         if divisor == 0 {
-                            i64::MAX
+                            u64::MAX as i64
                         } else {
                             dividend.wrapping_div(divisor) as i64
                         },
@@ -75,7 +75,7 @@ impl Executor for Rv64mExecutor {
                     x.writei(
                         rd,
                         if divisor == 0 {
-                            i64::MAX
+                            u64::MAX as i64
                         } else {
                             dividend.wrapping_div(divisor) as i32 as i64
                         },

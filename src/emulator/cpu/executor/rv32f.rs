@@ -1,9 +1,11 @@
 use crate::{
+    bitops::extend_sign,
+    bitops::{MASK_3BIT, MASK_5BIT},
     emulator::{
         bus::SystemBus,
         cpu::{
-            csr::ControlAndStatusRegister,
-            executor::{Executor, MASK_3BIT, MASK_5BIT},
+            csr::{ControlAndStatusRegister, Csr},
+            executor::Executor,
             f::FloatingPointRegister,
             pc::ProgramCounter,
             x::IntegerRegister,
@@ -17,19 +19,36 @@ use crate::{
             },
             Instruction,
         },
-        privileged::{cause::Cause, mode::PrivilegeMode},
+        privileged::{
+            cause::{Cause, Exception},
+            mode::PrivilegeMode,
+        },
     },
 };
-use rustc_apfloat::ieee::Single;
-use rustc_apfloat::{Float, Round, StatusAnd};
+use rustc_apfloat::{ieee::Single, Float, Round, StatusAnd};
+
+fn convert_to_fflags(status: u8) -> u64 {
+    let nv = status & 0b1; // Invalid Operation
+    let dz = (status >> 1) & 0b1; // Divide by Zero
+    let of = (status >> 2) & 0b1; // Overflow
+    let uf = (status >> 3) & 0b1; // Underflow
+    let nx = (status >> 4) & 0b1; // Inexact
+    ((nv << 4) | (dz << 3) | (of << 2) | (uf << 1) | nx) as u64
+}
 
 trait StatusAndExt {
     fn bits(self) -> u32;
+    fn fflags(self) -> u64;
 }
 
 impl StatusAndExt for StatusAnd<Single> {
     fn bits(self) -> u32 {
         self.value.bits()
+    }
+
+    fn fflags(self) -> u64 {
+        let status = self.status.bits();
+        convert_to_fflags(status)
     }
 }
 
@@ -66,6 +85,16 @@ fn decode_rm(rm: usize) -> Option<Round> {
         0b011 => Some(Round::TowardPositive),    // RUP, Round Up (towards +∞)
         0b100 => Some(Round::NearestTiesToAway), // RMM, Round to Nearest, ties to Max Magnitude
         _ => None,
+    }
+}
+
+fn encode_rm(round: Round) -> Option<u64> {
+    match round {
+        Round::NearestTiesToEven => Some(0b000),
+        Round::TowardZero => Some(0b001),
+        Round::TowardNegative => Some(0b010),
+        Round::TowardPositive => Some(0b011),
+        Round::NearestTiesToAway => Some(0b100),
     }
 }
 
@@ -116,225 +145,224 @@ impl Executor for Rv32fExecutor {
                 funct7,
             } => {
                 // TODO: NaN handling
-                // TODO: invalid rm handling
-                let rm = select_rm(funct3, csr).unwrap();
+                let rm = match select_rm(funct3, csr) {
+                    Some(round) => round,
+                    None => return Err(Cause::Exception(Exception::IllegalInstruction)),
+                };
                 let rs3 = (funct7 >> 2) & MASK_5BIT as usize;
-                match opcode {
+                let status = match opcode {
                     Rv32fOpcodeR::FmaddS => {
-                        f.write(
-                            rd,
-                            Single::decode(f.read(rs1))
-                                .mul_add_r(
-                                    Single::decode(f.read(rs2)),
-                                    Single::decode(f.read(rs3)),
-                                    rm,
-                                )
-                                .bits(),
+                        // Accumulating CSRs: frm, NV, OF, UF, NX
+                        let result = Single::decode(f.reads(rs1)).mul_add_r(
+                            Single::decode(f.reads(rs2)),
+                            Single::decode(f.reads(rs3)),
+                            rm,
                         );
-                        Ok(())
+                        f.writes(rd, result.bits());
+                        Some(result.fflags())
                     }
                     Rv32fOpcodeR::FmsubS => {
-                        f.write(
-                            rd,
-                            Single::decode(f.read(rs1))
-                                .mul_add_r(
-                                    Single::decode(f.read(rs2)),
-                                    -Single::decode(f.read(rs3)),
-                                    rm,
-                                )
-                                .bits(),
+                        // Accumulating CSRs: frm, NV, OF, UF, NX
+                        let result = Single::decode(f.reads(rs1)).mul_add_r(
+                            Single::decode(f.reads(rs2)),
+                            -Single::decode(f.reads(rs3)),
+                            rm,
                         );
-                        Ok(())
+                        f.writes(rd, result.bits());
+                        Some(result.fflags())
                     }
                     Rv32fOpcodeR::FnmsubS => {
-                        f.write(
-                            rd,
-                            Single::decode(f.read(rs1))
-                                .mul_add_r(
-                                    -Single::decode(f.read(rs2)),
-                                    Single::decode(f.read(rs3)),
-                                    rm,
-                                )
-                                .bits(),
+                        // Accumulating CSRs: frm, NV, OF, UF, NX
+                        let result = Single::decode(f.reads(rs1)).mul_add_r(
+                            -Single::decode(f.reads(rs2)),
+                            Single::decode(f.reads(rs3)),
+                            rm,
                         );
-                        Ok(())
+                        f.writes(rd, result.bits());
+                        Some(result.fflags())
                     }
                     Rv32fOpcodeR::FnmaddS => {
-                        f.write(
-                            rd,
-                            (-Single::decode(f.read(rs1)))
-                                .mul_add_r(
-                                    Single::decode(f.read(rs2)),
-                                    -Single::decode(f.read(rs3)),
-                                    rm,
-                                )
-                                .bits(),
+                        // Accumulating CSRs: frm, NV, OF, UF, NX
+                        let result = (-Single::decode(f.reads(rs1))).mul_add_r(
+                            Single::decode(f.reads(rs2)),
+                            -Single::decode(f.reads(rs3)),
+                            rm,
                         );
-                        Ok(())
+                        f.writes(rd, result.bits());
+                        Some(result.fflags())
                     }
                     Rv32fOpcodeR::FaddS => {
-                        f.write(
-                            rd,
-                            Single::decode(f.read(rs1))
-                                .add_r(Single::decode(f.read(rs2)), rm)
-                                .bits(),
-                        );
-                        Ok(())
+                        // Accumulating CSRs: frm, NV, OF, UF, NX
+                        let result =
+                            Single::decode(f.reads(rs1)).add_r(Single::decode(f.reads(rs2)), rm);
+                        f.writes(rd, result.bits());
+                        Some(result.fflags())
                     }
                     Rv32fOpcodeR::FsubS => {
-                        f.write(
-                            rd,
-                            Single::decode(f.read(rs1))
-                                .sub_r(Single::decode(f.read(rs2)), rm)
-                                .bits(),
-                        );
-                        Ok(())
+                        // Accumulating CSRs: frm, NV, OF, UF, NX
+                        let result =
+                            Single::decode(f.reads(rs1)).sub_r(Single::decode(f.reads(rs2)), rm);
+                        f.writes(rd, result.bits());
+                        Some(result.fflags())
                     }
                     Rv32fOpcodeR::FmulS => {
-                        f.write(
-                            rd,
-                            Single::decode(f.read(rs1))
-                                .mul_r(Single::decode(f.read(rs2)), rm)
-                                .bits(),
-                        );
-                        Ok(())
+                        // Accumulating CSRs: frm, NV, OF, UF, NX
+                        let result =
+                            Single::decode(f.reads(rs1)).mul_r(Single::decode(f.reads(rs2)), rm);
+                        f.writes(rd, result.bits());
+                        Some(result.fflags())
                     }
                     Rv32fOpcodeR::FdivS => {
-                        f.write(
-                            rd,
-                            Single::decode(f.read(rs1))
-                                .div_r(Single::decode(f.read(rs2)), rm)
-                                .bits(),
-                        );
-                        Ok(())
+                        // Accumulating CSRs: frm, NV, DZ, OF, UF, NX
+                        let result =
+                            Single::decode(f.reads(rs1)).div_r(Single::decode(f.reads(rs2)), rm);
+                        f.writes(rd, result.bits());
+                        Some(result.fflags())
                     }
                     Rv32fOpcodeR::FsqrtS => {
-                        // sqrt is not supported by the library
-                        f.write(
+                        // Accumulating CSRs: frm, NV, NX
+                        // However, it is not supported by the library
+                        f.writes(
                             rd,
-                            Single::from_f32(Single::decode(f.read(rs1)).to_f32().sqrt()).bits(),
+                            Single::from_f32(Single::decode(f.reads(rs1)).to_f32().sqrt()).bits(),
                         );
-                        Ok(())
+                        None
                     }
                     Rv32fOpcodeR::FsgnjS => {
-                        let sign = Single::decode(f.read(rs2));
-                        let ret = Single::decode(f.read(rs1)).copy_sign(sign);
-                        f.write(rd, ret.bits());
-                        Ok(())
+                        // Accumulating CSRs: None
+                        let sign = Single::decode(f.reads(rs2));
+                        let ret = Single::decode(f.reads(rs1)).copy_sign(sign);
+                        f.writes(rd, ret.bits());
+                        None
                     }
                     Rv32fOpcodeR::FsgnjnS => {
-                        let sign = Single::decode(f.read(rs2));
-                        let ret = Single::decode(f.read(rs1)).copy_sign(-sign);
-                        f.write(rd, ret.bits());
-                        Ok(())
+                        // Accumulating CSRs: None
+                        let sign = Single::decode(f.reads(rs2));
+                        let ret = Single::decode(f.reads(rs1)).copy_sign(-sign);
+                        f.writes(rd, ret.bits());
+                        None
                     }
                     Rv32fOpcodeR::FsgnjxS => {
-                        let ret = Single::decode(f.read(rs1));
-                        let sign = Single::decode(f.read(rs2)).is_negative() ^ ret.is_negative();
-                        f.write(
+                        // Accumulating CSRs: None
+                        let ret = Single::decode(f.reads(rs1));
+                        let sign = Single::decode(f.reads(rs2)).is_negative() ^ ret.is_negative();
+                        f.writes(
                             rd,
                             (if sign == ret.is_negative() { ret } else { -ret }).bits(),
                         );
-                        Ok(())
+                        None
                     }
                     Rv32fOpcodeR::FminS => {
-                        let val1 = Single::decode(f.read(rs1));
-                        let val2 = Single::decode(f.read(rs2));
+                        // Accumulating CSRs: NV
+                        // However, it is not supported by the library
+                        let val1 = Single::decode(f.reads(rs1));
+                        let val2 = Single::decode(f.reads(rs2));
                         let min = if val1 < val2 { val1 } else { val2 };
-                        f.write(rd, min.bits());
-                        Ok(())
+                        f.writes(rd, min.bits());
+                        None
                     }
                     Rv32fOpcodeR::FmaxS => {
-                        let val1 = Single::decode(f.read(rs1));
-                        let val2 = Single::decode(f.read(rs2));
+                        // Accumulating CSRs: NV
+                        // However, it is not supported by the library
+                        let val1 = Single::decode(f.reads(rs1));
+                        let val2 = Single::decode(f.reads(rs2));
                         let max = if val1 < val2 { val2 } else { val1 };
-                        f.write(rd, max.bits());
-                        Ok(())
+                        f.writes(rd, max.bits());
+                        None
                     }
                     Rv32fOpcodeR::FcvtWs => {
-                        x.writei(
-                            rd,
-                            Single::decode(f.read(rs1))
-                                .to_u128_r(32, rm, &mut false)
-                                .value as i64,
-                        );
-                        Ok(())
+                        // Accumulating CSRs: frm, NV, NX
+                        let result = Single::decode(f.reads(rs1)).to_u128_r(32, rm, &mut false);
+                        x.writei(rd, result.value as i64);
+                        Some(convert_to_fflags(result.status.bits()))
                     }
                     Rv32fOpcodeR::FcvtWuS => {
-                        x.writei(
-                            rd,
-                            Single::decode(f.read(rs1))
-                                .to_u128_r(32, rm, &mut false)
-                                .value as i32 as i64,
-                        );
-                        Ok(())
+                        // Accumulating CSRs: frm, NV, NX
+                        let result = Single::decode(f.reads(rs1)).to_u128_r(32, rm, &mut false);
+                        x.writei(rd, result.value as i32 as i64);
+                        Some(convert_to_fflags(result.status.bits()))
                     }
                     Rv32fOpcodeR::FmvXw => {
-                        x.writei(rd, f.read(rs1) as i32 as i64);
-                        Ok(())
+                        // Accumulating CSRs: None
+                        x.writei(rd, extend_sign(f.reads(rs1) as u64, 32));
+                        None
                     }
                     Rv32fOpcodeR::FeqS => {
-                        let val1 = Single::decode(f.read(rs1));
-                        let val2 = Single::decode(f.read(rs2));
+                        // Accumulating CSRs: NV
+                        // However, it is not supported by the library
+                        let val1 = Single::decode(f.reads(rs1));
+                        let val2 = Single::decode(f.reads(rs2));
                         let ret = u32::from(val1 == val2);
-                        f.write(rd, ret);
-                        Ok(())
+                        f.writes(rd, ret);
+                        None
                     }
                     Rv32fOpcodeR::FltS => {
-                        let val1 = Single::decode(f.read(rs1));
-                        let val2 = Single::decode(f.read(rs2));
+                        // Accumulating CSRs: NV
+                        // However, it is not supported by the library
+                        let val1 = Single::decode(f.reads(rs1));
+                        let val2 = Single::decode(f.reads(rs2));
                         let ret = u32::from(val1 < val2);
-                        f.write(rd, ret);
-                        Ok(())
+                        f.writes(rd, ret);
+                        None
                     }
                     Rv32fOpcodeR::FleS => {
-                        let val1 = Single::decode(f.read(rs1));
-                        let val2 = Single::decode(f.read(rs2));
+                        // Accumulating CSRs: NV
+                        // However, it is not supported by the library
+                        let val1 = Single::decode(f.reads(rs1));
+                        let val2 = Single::decode(f.reads(rs2));
                         let ret = u32::from(val1 <= val2);
-                        f.write(rd, ret);
-                        Ok(())
+                        f.writes(rd, ret);
+                        None
                     }
                     Rv32fOpcodeR::FclassS => {
-                        let val = Single::decode(f.read(rs1));
-                        let class = if val.is_negative() && val.is_infinite() {
+                        // Accumulating CSRs: None
+                        let value = Single::decode(f.reads(rs1));
+                        let class = if value.is_negative() && value.is_infinite() {
                             0
-                        } else if val.is_negative() && val.is_normal() {
+                        } else if value.is_negative() && value.is_normal() {
                             1
-                        } else if val.is_negative() && val.is_denormal() {
+                        } else if value.is_negative() && value.is_denormal() {
                             2
-                        } else if val.is_neg_zero() {
+                        } else if value.is_neg_zero() {
                             3
-                        } else if val.is_pos_zero() {
+                        } else if value.is_pos_zero() {
                             4
-                        } else if !val.is_negative() && val.is_denormal() {
+                        } else if !value.is_negative() && value.is_denormal() {
                             5
-                        } else if !val.is_negative() && val.is_normal() {
+                        } else if !value.is_negative() && value.is_normal() {
                             6
-                        } else if !val.is_negative() && val.is_infinite() {
+                        } else if !value.is_negative() && value.is_infinite() {
                             7
                         } else {
                             // TODO: supports signaling NaN / quiet NaN
                             9
                         };
                         x.writeu(rd, class);
-                        Ok(())
+                        None
                     }
                     Rv32fOpcodeR::FcvtSw => {
-                        f.write(
-                            rd,
-                            Single::from_i128_r(x.readi(rs1) as i32 as i128, rm).bits(),
-                        );
-                        Ok(())
+                        // Accumulating CSRs: frm, NV, NX
+                        let result = Single::from_i128_r(x.readi(rs1) as i32 as i128, rm);
+                        f.writes(rd, result.bits());
+                        Some(result.fflags())
                     }
                     Rv32fOpcodeR::FcvtSWu => {
-                        f.write(rd, Single::from_u128_r(x.readi(rs1) as u128, rm).bits());
-                        Ok(())
+                        // Accumulating CSRs: frm, NV, NX
+                        let result = Single::from_u128_r(x.readi(rs1) as u128, rm);
+                        f.writes(rd, result.bits());
+                        Some(result.fflags())
                     }
                     Rv32fOpcodeR::FmvWx => {
-                        f.write(rd, x.readu(rs1) as u32);
-                        Ok(())
+                        // Accumulating CSRs: None
+                        f.writes(rd, x.readu(rs1) as u32);
+                        None
                     }
+                };
+                if let (Some(fflags), Some(frm)) = (status, encode_rm(rm)) {
+                    let fcsr = (frm << 5) | fflags;
+                    csr.write(FCSR, fcsr);
                 }
+                Ok(())
             }
             Instruction::TypeI {
                 opcode,
@@ -344,7 +372,11 @@ impl Executor for Rv32fExecutor {
                 imm,
             } => match opcode {
                 Rv32fOpcodeI::Flw => {
-                    f.write(rd, bus.load32(x.readi(rs1).wrapping_add(imm as i64) as u64));
+                    // Accumulating CSRs: None
+                    f.writes(
+                        rd,
+                        bus.load32(x.readi(rs1).wrapping_add(extend_sign(imm, 12)) as u64),
+                    );
                     Ok(())
                 }
             },
@@ -356,7 +388,8 @@ impl Executor for Rv32fExecutor {
                 imm,
             } => match opcode {
                 Rv32fOpcodeS::Fsw => {
-                    bus.store32(x.readi(rs1).wrapping_add(imm as i64) as u64, f.read(rs2));
+                    // Accumulating CSRs: None
+                    bus.store32(x.readi(rs1).wrapping_add(imm as i64) as u64, f.reads(rs2));
                     Ok(())
                 }
             },

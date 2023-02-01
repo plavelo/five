@@ -1,5 +1,5 @@
 use crate::isa::{
-    description::{format3, Describer, Description},
+    description::{xformat3, Describer, Description},
     instruction::{
         rv64m::{
             Rv64mOpcodeB, Rv64mOpcodeI, Rv64mOpcodeJ, Rv64mOpcodeR, Rv64mOpcodeS, Rv64mOpcodeU,
@@ -26,7 +26,7 @@ impl Describer
     type OpcodeJ = Rv64mOpcodeJ;
 
     fn describe(&self) -> Description {
-        let (description, assembly, signature, pseudocode) = match self {
+        let (description, assembly, signature, pseudocode) = match *self {
             Self::TypeR {
                 opcode,
                 rd,
@@ -37,31 +37,31 @@ impl Describer
             } => match opcode {
                 Rv64mOpcodeR::Mulw => (
                     "Multiply Word",
-                    format3(opcode.to_string(), rd, rs1, rs2),
+                    xformat3(opcode.to_string(), rd, rs1, rs2),
                     "mulw rd,rs1,rs2",
                     "x[rd] = sext((x[rs1] * x[rs2])[31:0])",
                 ),
                 Rv64mOpcodeR::Divw => (
                     "Divide Word",
-                    format3(opcode.to_string(), rd, rs1, rs2),
+                    xformat3(opcode.to_string(), rd, rs1, rs2),
                     "divw rd,rs1,rs2",
                     "x[rd] = sext(x[rs1][31:0] /s x[rs2][31:0])",
                 ),
                 Rv64mOpcodeR::Divuw => (
                     "Divide Word, Unsigned",
-                    format3(opcode.to_string(), rd, rs1, rs2),
+                    xformat3(opcode.to_string(), rd, rs1, rs2),
                     "divuw rd,rs1,rs2",
                     "x[rd] = sext(x[rs1][31:0] /u x[rs2][31:0])",
                 ),
                 Rv64mOpcodeR::Remw => (
                     "Reminder Word",
-                    format3(opcode.to_string(), rd, rs1, rs2),
+                    xformat3(opcode.to_string(), rd, rs1, rs2),
                     "remw rd,rs1,rs2",
                     "x[rd] = sext(x[rs1][31:0] %s x[rs2][31:0])",
                 ),
                 Rv64mOpcodeR::Remuw => (
                     "Reminder Word, Unsigned",
-                    format3(opcode.to_string(), rd, rs1, rs2),
+                    xformat3(opcode.to_string(), rd, rs1, rs2),
                     "remuw rd,rs1,rs2",
                     "x[rd] = sext(x[rs1][31:0] %u x[rs2][31:0])",
                 ),

@@ -1,5 +1,5 @@
 use crate::{
-    emulator::cpu::csr::ControlAndStatusRegister,
+    emulator::cpu::csr::{ControlAndStatusRegister, Csr},
     isa::{
         csr::{machine_level::*, status::*, supervisor_level::*, user_level::*},
         privileged::{

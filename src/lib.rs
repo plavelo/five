@@ -1,3 +1,4 @@
+mod bitops;
 pub mod emulator;
-mod isa;
+pub mod isa;
 extern crate rustc_apfloat;

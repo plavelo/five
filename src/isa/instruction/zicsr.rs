@@ -1,14 +1,9 @@
 use std::fmt;
 
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum ZicsrOpcodeR {}
 
-impl fmt::Display for ZicsrOpcodeR {
-    fn fmt(&self, _: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Result::Err(fmt::Error)
-    }
-}
-
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum ZicsrOpcodeI {
     Csrrw,
     Csrrs,
@@ -20,7 +15,7 @@ pub enum ZicsrOpcodeI {
 
 impl fmt::Display for ZicsrOpcodeI {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
+        match self {
             Self::Csrrw => f.write_str("csrrw"),
             Self::Csrrs => f.write_str("csrrs"),
             Self::Csrrc => f.write_str("csrrc"),
@@ -31,34 +26,14 @@ impl fmt::Display for ZicsrOpcodeI {
     }
 }
 
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum ZicsrOpcodeS {}
 
-impl fmt::Display for ZicsrOpcodeS {
-    fn fmt(&self, _: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Result::Err(fmt::Error)
-    }
-}
-
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum ZicsrOpcodeB {}
 
-impl fmt::Display for ZicsrOpcodeB {
-    fn fmt(&self, _: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Result::Err(fmt::Error)
-    }
-}
-
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum ZicsrOpcodeU {}
 
-impl fmt::Display for ZicsrOpcodeU {
-    fn fmt(&self, _: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Result::Err(fmt::Error)
-    }
-}
-
+#[derive(Debug, PartialEq)]
 pub enum ZicsrOpcodeJ {}
-
-impl fmt::Display for ZicsrOpcodeJ {
-    fn fmt(&self, _: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Result::Err(fmt::Error)
-    }
-}

@@ -60,12 +60,11 @@ impl Executor for Rv32mExecutor {
                 ),
                 Rv32mOpcodeR::Mulhsu => x.writeu(
                     rd,
-                    ((x.readi(rs1) as i128 as u128).wrapping_mul(x.readi(rs2) as u128) >> 64)
-                        as u64,
+                    ((x.readi(rs1) as i128).wrapping_mul(x.readu(rs2) as i128) >> 64) as u64,
                 ),
                 Rv32mOpcodeR::Mulhu => x.writeu(
                     rd,
-                    ((x.readi(rs1) as u128).wrapping_mul(x.readi(rs2) as u128) >> 64) as u64,
+                    ((x.readu(rs1) as u128).wrapping_mul(x.readu(rs2) as u128) >> 64) as u64,
                 ),
                 Rv32mOpcodeR::Div => {
                     let dividend = x.readi(rs1);
@@ -73,7 +72,7 @@ impl Executor for Rv32mExecutor {
                     x.writei(
                         rd,
                         if divisor == 0 {
-                            i64::MAX
+                            u64::MAX as i64
                         } else {
                             dividend.wrapping_div(divisor)
                         },

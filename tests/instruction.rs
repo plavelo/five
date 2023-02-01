@@ -1,4 +1,10 @@
-use five::emulator::Emulator;
+use five::{
+    emulator::{
+        cpu::{csr::Csr, Cpu},
+        Emulator,
+    },
+    isa::csr::user_level::CYCLE,
+};
 use std::fs::File;
 use std::path::PathBuf;
 
@@ -10,9 +16,21 @@ fn run(name: &str) -> bool {
     path.set_extension("bin");
     let file = File::open(path.as_path());
     let mut emulator = Emulator::default();
+    let terminator = Some(|cpu: &Cpu| {
+        if cpu.csr.read(CYCLE) > 10000 {
+            println!("timeout");
+            return Some(0);
+        }
+        let value = cpu.bus.load64(0x80001000);
+        if value == 1 {
+            Some(1)
+        } else {
+            None
+        }
+    });
     if let Ok(f) = file {
         let _ = emulator.load(f);
-        emulator.run() == 0
+        emulator.run(false, terminator) == 1
     } else {
         false
     }

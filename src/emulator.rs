@@ -1,5 +1,5 @@
 mod bus;
-mod cpu;
+pub mod cpu;
 
 use crate::emulator::{
     bus::{memory::MEMORY_BASE_ADDRESS, Size},
@@ -8,7 +8,6 @@ use crate::emulator::{
 use std::fs::File;
 use std::io::{BufReader, Read, Result};
 
-#[allow(dead_code)]
 #[derive(Default)]
 pub struct Emulator {
     cpu: Cpu,
@@ -27,7 +26,7 @@ impl Emulator {
         Ok(())
     }
 
-    pub fn run(&mut self) -> u64 {
-        self.cpu.run()
+    pub fn run(&mut self, debug: bool, terminator: Option<impl Fn(&Cpu) -> Option<u64>>) -> u64 {
+        self.cpu.run(debug, terminator)
     }
 }

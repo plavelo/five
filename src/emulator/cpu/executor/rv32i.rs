@@ -1,12 +1,10 @@
 use crate::{
+    bitops::{extend_sign, shift_amount},
     emulator::{
         bus::SystemBus,
         cpu::{
-            csr::ControlAndStatusRegister,
-            executor::{extend_sign, Executor, MASK_5BIT, MASK_6BIT},
-            f::FloatingPointRegister,
-            pc::ProgramCounter,
-            x::IntegerRegister,
+            csr::ControlAndStatusRegister, executor::Executor, f::FloatingPointRegister,
+            pc::ProgramCounter, x::IntegerRegister,
         },
     },
     isa::{
@@ -59,15 +57,15 @@ impl Executor for Rv32iExecutor {
                 funct7: _,
             } => match opcode {
                 Rv32iOpcodeR::Sll => {
-                    x.writeu(rd, x.readu(rs1) << (x.readu(rs2) & MASK_5BIT));
+                    x.writeu(rd, x.readu(rs1) << shift_amount(x.readu(rs2)));
                     Ok(())
                 }
                 Rv32iOpcodeR::Srl => {
-                    x.writeu(rd, x.readu(rs1) >> (x.readu(rs2) & MASK_5BIT));
+                    x.writeu(rd, x.readu(rs1) >> shift_amount(x.readu(rs2)));
                     Ok(())
                 }
                 Rv32iOpcodeR::Sra => {
-                    x.writei(rd, x.readi(rs1) >> (x.readu(rs2) & MASK_5BIT));
+                    x.writei(rd, x.readi(rs1) >> shift_amount(x.readu(rs2)));
                     Ok(())
                 }
                 Rv32iOpcodeR::Add => {
@@ -107,44 +105,44 @@ impl Executor for Rv32iExecutor {
                 imm,
             } => match opcode {
                 Rv32iOpcodeI::Slli => {
-                    x.writeu(rd, x.readu(rs1) << (imm & MASK_6BIT));
+                    x.writeu(rd, x.readu(rs1) << shift_amount(imm));
                     Ok(())
                 }
                 Rv32iOpcodeI::Srli => {
-                    x.writeu(rd, x.readu(rs1) >> (imm & MASK_6BIT));
+                    x.writeu(rd, x.readu(rs1) >> shift_amount(imm));
                     Ok(())
                 }
                 Rv32iOpcodeI::Srai => {
-                    x.writei(rd, x.readi(rs1) >> (imm & MASK_6BIT));
+                    x.writei(rd, x.readi(rs1) >> shift_amount(imm));
                     Ok(())
                 }
                 Rv32iOpcodeI::Addi => {
-                    x.writeu(rd, x.readu(rs1).wrapping_add(imm));
+                    x.writei(rd, x.readi(rs1).wrapping_add(extend_sign(imm, 12)));
                     Ok(())
                 }
                 Rv32iOpcodeI::Xori => {
-                    x.writeu(rd, x.readu(rs1) ^ imm);
+                    x.writei(rd, x.readi(rs1) ^ extend_sign(imm, 12));
                     Ok(())
                 }
                 Rv32iOpcodeI::Ori => {
-                    x.writeu(rd, x.readu(rs1) | imm);
+                    x.writei(rd, x.readi(rs1) | extend_sign(imm, 12));
                     Ok(())
                 }
                 Rv32iOpcodeI::Andi => {
-                    x.writeu(rd, x.readu(rs1) & imm);
+                    x.writei(rd, x.readi(rs1) & extend_sign(imm, 12));
                     Ok(())
                 }
                 Rv32iOpcodeI::Slti => {
-                    x.writeu(rd, u64::from(x.readi(rs1) < imm as i64));
+                    x.writeu(rd, u64::from(x.readi(rs1) < extend_sign(imm, 12)));
                     Ok(())
                 }
                 Rv32iOpcodeI::Sltiu => {
-                    x.writeu(rd, u64::from(x.readu(rs1) < imm));
+                    x.writeu(rd, u64::from(x.readu(rs1) < extend_sign(imm, 12) as u64));
                     Ok(())
                 }
                 Rv32iOpcodeI::Jalr => {
                     let last = pc.read();
-                    pc.jump((x.readi(rs1).wrapping_add(imm as i64) & !1) as u64);
+                    pc.jump((x.readi(rs1).wrapping_add(extend_sign(imm, 12)) & !1) as u64);
                     x.writeu(rd, last.wrapping_add(4));
                     Ok(())
                 }
@@ -164,35 +162,47 @@ impl Executor for Rv32iExecutor {
                 Rv32iOpcodeI::Lb => {
                     x.writei(
                         rd,
-                        bus.load8(x.readi(rs1).wrapping_add(imm as i64) as u64) as i64,
+                        extend_sign(
+                            bus.load8(x.readi(rs1).wrapping_add(extend_sign(imm, 12)) as u64)
+                                as u64,
+                            8,
+                        ),
                     );
                     Ok(())
                 }
                 Rv32iOpcodeI::Lh => {
                     x.writei(
                         rd,
-                        bus.load16(x.readi(rs1).wrapping_add(imm as i64) as u64) as i64,
+                        extend_sign(
+                            bus.load16(x.readi(rs1).wrapping_add(extend_sign(imm, 12)) as u64)
+                                as u64,
+                            16,
+                        ),
                     );
                     Ok(())
                 }
                 Rv32iOpcodeI::Lbu => {
                     x.writeu(
                         rd,
-                        bus.load8(x.readi(rs1).wrapping_add(imm as i64) as u64) as u64,
+                        bus.load8(x.readi(rs1).wrapping_add(extend_sign(imm, 12)) as u64) as u64,
                     );
                     Ok(())
                 }
                 Rv32iOpcodeI::Lhu => {
                     x.writeu(
                         rd,
-                        bus.load16(x.readi(rs1).wrapping_add(imm as i64) as u64) as u64,
+                        bus.load16(x.readi(rs1).wrapping_add(extend_sign(imm, 12)) as u64) as u64,
                     );
                     Ok(())
                 }
                 Rv32iOpcodeI::Lw => {
-                    x.writeu(
+                    x.writei(
                         rd,
-                        bus.load32(x.readi(rs1).wrapping_add(imm as i64) as u64) as u64,
+                        extend_sign(
+                            bus.load32(x.readi(rs1).wrapping_add(extend_sign(imm, 12)) as u64)
+                                as u64,
+                            32,
+                        ),
                     );
                     Ok(())
                 }
@@ -206,21 +216,21 @@ impl Executor for Rv32iExecutor {
             } => match opcode {
                 Rv32iOpcodeS::Sb => {
                     bus.store8(
-                        x.readi(rs1).wrapping_add(imm as i64) as u64,
+                        x.readi(rs1).wrapping_add(extend_sign(imm, 12)) as u64,
                         x.readu(rs2) as u8,
                     );
                     Ok(())
                 }
                 Rv32iOpcodeS::Sh => {
                     bus.store16(
-                        x.readi(rs1).wrapping_add(imm as i64) as u64,
+                        x.readi(rs1).wrapping_add(extend_sign(imm, 12)) as u64,
                         x.readu(rs2) as u16,
                     );
                     Ok(())
                 }
                 Rv32iOpcodeS::Sw => {
                     bus.store32(
-                        x.readi(rs1).wrapping_add(imm as i64) as u64,
+                        x.readi(rs1).wrapping_add(extend_sign(imm, 12)) as u64,
                         x.readu(rs2) as u32,
                     );
                     Ok(())

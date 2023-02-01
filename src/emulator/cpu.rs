@@ -1,4 +1,4 @@
-mod csr;
+pub mod csr;
 mod decoder;
 mod executor;
 mod f;
@@ -6,11 +6,13 @@ mod pc;
 mod trap_handler;
 mod x;
 
+use std::time::{SystemTime, UNIX_EPOCH};
+
 use crate::{
     emulator::{
         bus::SystemBus,
         cpu::{
-            csr::ControlAndStatusRegister,
+            csr::{ControlAndStatusRegister, Csr},
             decoder::{
                 privileged::PrivilegedDecoder, rv32f::Rv32fDecoder, rv32i::Rv32iDecoder,
                 rv32m::Rv32mDecoder, rv64i::Rv64iDecoder, rv64m::Rv64mDecoder, zicsr::ZicsrDecoder,
@@ -28,9 +30,10 @@ use crate::{
         },
     },
     isa::{
+        csr::user_level::{CYCLE, INSTRET, TIME},
         description::Describer,
         privileged::mode::PrivilegeMode,
-        register::{register_name, A0},
+        register::{to_fname, to_xname},
     },
 };
 
@@ -39,22 +42,25 @@ pub struct Cpu {
     x: IntegerRegister,
     f: FloatingPointRegister,
     pc: ProgramCounter,
-    csr: ControlAndStatusRegister,
+    pub csr: ControlAndStatusRegister,
     prv: PrivilegeMode,
     pub bus: SystemBus,
 }
 
 impl Cpu {
-    pub fn run(&mut self) -> u64 {
+    pub fn run(&mut self, debug: bool, terminator: Option<impl Fn(&Cpu) -> Option<u64>>) -> u64 {
         while self.pc.read() < self.bus.memory.size() {
-            let snapshot = self.x.snapshot();
+            let xsnapshot = self.x.snapshot();
+            let fsnapshot = self.f.snapshot();
             // read an address from the pc
             let address = self.pc.read();
             // fetch an instruction
             let instruction = self.bus.load32(address);
             // decode and execute the instruction
             let result = if let Some(decoded) = PrivilegedDecoder::decode(instruction) {
-                println!("{:x}: {}", address, decoded.describe());
+                if debug {
+                    println!("{:x}: {}", address, decoded.describe());
+                }
                 PrivilegedExecutor::execute(
                     decoded,
                     &self.prv,
@@ -65,7 +71,9 @@ impl Cpu {
                     &mut self.bus,
                 )
             } else if let Some(decoded) = ZifenceiDecoder::decode(instruction) {
-                println!("{:x}: {}", address, decoded.describe());
+                if debug {
+                    println!("{:x}: {}", address, decoded.describe());
+                }
                 ZifenceiExecutor::execute(
                     decoded,
                     &self.prv,
@@ -76,7 +84,9 @@ impl Cpu {
                     &mut self.bus,
                 )
             } else if let Some(decoded) = ZicsrDecoder::decode(instruction) {
-                println!("{:x}: {}", address, decoded.describe());
+                if debug {
+                    println!("{:x}: {}", address, decoded.describe());
+                }
                 ZicsrExecutor::execute(
                     decoded,
                     &self.prv,
@@ -87,7 +97,9 @@ impl Cpu {
                     &mut self.bus,
                 )
             } else if let Some(decoded) = Rv32iDecoder::decode(instruction) {
-                println!("{:x}: {}", address, decoded.describe());
+                if debug {
+                    println!("{:x}: {}", address, decoded.describe());
+                }
                 Rv32iExecutor::execute(
                     decoded,
                     &self.prv,
@@ -98,7 +110,9 @@ impl Cpu {
                     &mut self.bus,
                 )
             } else if let Some(decoded) = Rv64iDecoder::decode(instruction) {
-                println!("{:x}: {}", address, decoded.describe());
+                if debug {
+                    println!("{:x}: {}", address, decoded.describe());
+                }
                 Rv64iExecutor::execute(
                     decoded,
                     &self.prv,
@@ -109,7 +123,9 @@ impl Cpu {
                     &mut self.bus,
                 )
             } else if let Some(decoded) = Rv32mDecoder::decode(instruction) {
-                println!("{:x}: {}", address, decoded.describe());
+                if debug {
+                    println!("{:x}: {}", address, decoded.describe());
+                }
                 Rv32mExecutor::execute(
                     decoded,
                     &self.prv,
@@ -120,7 +136,9 @@ impl Cpu {
                     &mut self.bus,
                 )
             } else if let Some(decoded) = Rv64mDecoder::decode(instruction) {
-                println!("{:x}: {}", address, decoded.describe());
+                if debug {
+                    println!("{:x}: {}", address, decoded.describe());
+                }
                 Rv64mExecutor::execute(
                     decoded,
                     &self.prv,
@@ -131,7 +149,9 @@ impl Cpu {
                     &mut self.bus,
                 )
             } else if let Some(decoded) = Rv32fDecoder::decode(instruction) {
-                println!("{:x}: {}", address, decoded.describe());
+                if debug {
+                    println!("{:x}: {}", address, decoded.describe());
+                }
                 Rv32fExecutor::execute(
                     decoded,
                     &self.prv,
@@ -145,7 +165,16 @@ impl Cpu {
                 // end the loop when unable to decode the instruction
                 break;
             };
-            self.dump(snapshot);
+
+            if debug {
+                self.dump(xsnapshot, fsnapshot);
+            }
+
+            if let Some(ref func) = terminator {
+                if let Some(result) = func(self) {
+                    return result;
+                }
+            }
 
             // handle the trap
             if let Err(cause) = result {
@@ -158,20 +187,41 @@ impl Cpu {
             else if self.pc.read() == address {
                 self.pc.increment();
             }
+            // update the cycle
+            let cycle = self.csr.read(CYCLE) + 1;
+            self.csr.write(CYCLE, cycle);
+            // update the time
+            let time = SystemTime::now().duration_since(UNIX_EPOCH);
+            if let Ok(t) = time {
+                self.csr.write(TIME, t.as_secs());
+            }
+            // update the instret
+            let instret = self.csr.read(INSTRET) + 1;
+            self.csr.write(INSTRET, instret);
         }
-        self.x.readu(A0)
+        0
     }
 
-    fn dump(&self, snapshot: [u64; 32]) {
-        println!("\n{}", self.x);
-        let diff = self.x.diff(snapshot);
-        if !diff.is_empty() {
-            println!("\ndiff:");
-
-            for d in diff {
-                println!("\t{:8}: {:x} -> {:x}", register_name(d.0), d.1, d.2);
+    fn dump(&self, xsnapshot: [u64; 32], fsnapshot: [u64; 32]) {
+        println!("{}", "-".repeat(90));
+        println!("{}", self.x);
+        println!("{}", "-".repeat(90));
+        println!("{}", self.f);
+        println!("{}", "-".repeat(90));
+        let diffx = self.x.diff(xsnapshot);
+        if !diffx.is_empty() {
+            for d in diffx {
+                println!("{:8}: {:x} -> {:x}", to_xname(d.0), d.1, d.2);
             }
+            println!("{}", "-".repeat(90));
         }
-        println!("\n---------------------------\n");
+        let difff = self.f.diff(fsnapshot);
+        if !difff.is_empty() {
+            for d in difff {
+                println!("{:8}: {:x} -> {:x}", to_fname(d.0), d.1, d.2);
+            }
+            println!("{}", "-".repeat(90));
+        }
+        println!();
     }
 }

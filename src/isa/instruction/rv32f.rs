@@ -1,6 +1,6 @@
 use std::fmt;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Rv32fOpcodeR {
     FmaddS,
     FmsubS,
@@ -30,7 +30,7 @@ pub enum Rv32fOpcodeR {
 
 impl fmt::Display for Rv32fOpcodeR {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
+        match self {
             Self::FmaddS => f.write_str("fmadd.s"),
             Self::FmsubS => f.write_str("fmsub.s"),
             Self::FnmsubS => f.write_str("fnmsub.s"),
@@ -59,46 +59,37 @@ impl fmt::Display for Rv32fOpcodeR {
     }
 }
 
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Rv32fOpcodeI {
     Flw,
 }
 
 impl fmt::Display for Rv32fOpcodeI {
-    fn fmt(&self, _: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Result::Err(fmt::Error)
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::Flw => f.write_str("flw"),
+        }
     }
 }
 
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Rv32fOpcodeS {
     Fsw,
 }
 
 impl fmt::Display for Rv32fOpcodeS {
-    fn fmt(&self, _: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Result::Err(fmt::Error)
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::Fsw => f.write_str("fsw"),
+        }
     }
 }
 
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Rv32fOpcodeB {}
 
-impl fmt::Display for Rv32fOpcodeB {
-    fn fmt(&self, _: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Result::Err(fmt::Error)
-    }
-}
-
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Rv32fOpcodeU {}
 
-impl fmt::Display for Rv32fOpcodeU {
-    fn fmt(&self, _: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Result::Err(fmt::Error)
-    }
-}
-
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Rv32fOpcodeJ {}
-
-impl fmt::Display for Rv32fOpcodeJ {
-    fn fmt(&self, _: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Result::Err(fmt::Error)
-    }
-}

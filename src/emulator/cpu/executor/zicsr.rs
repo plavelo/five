@@ -1,9 +1,10 @@
 use crate::{
+    bitops::MASK_12BIT,
     emulator::{
         bus::SystemBus,
         cpu::{
-            csr::ControlAndStatusRegister,
-            executor::{Executor, MASK_12BIT},
+            csr::{ControlAndStatusRegister, Csr},
+            executor::Executor,
             f::FloatingPointRegister,
             pc::ProgramCounter,
             x::IntegerRegister,

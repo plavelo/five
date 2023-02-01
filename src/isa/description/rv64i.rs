@@ -1,10 +1,13 @@
-use crate::isa::{
-    description::{format3, format_immediate, format_offset, Describer, Description, MASK_6BIT},
-    instruction::{
-        rv64i::{
-            Rv64iOpcodeB, Rv64iOpcodeI, Rv64iOpcodeJ, Rv64iOpcodeR, Rv64iOpcodeS, Rv64iOpcodeU,
+use crate::{
+    bitops::{extend_sign, shift_amount},
+    isa::{
+        description::{xformat3, xformat_immediate, xformat_offset, Describer, Description},
+        instruction::{
+            rv64i::{
+                Rv64iOpcodeB, Rv64iOpcodeI, Rv64iOpcodeJ, Rv64iOpcodeR, Rv64iOpcodeS, Rv64iOpcodeU,
+            },
+            Instruction,
         },
-        Instruction,
     },
 };
 
@@ -26,7 +29,7 @@ impl Describer
     type OpcodeJ = Rv64iOpcodeJ;
 
     fn describe(&self) -> Description {
-        let (description, assembly, signature, pseudocode) = match self {
+        let (description, assembly, signature, pseudocode) = match *self {
             Self::TypeR {
                 opcode,
                 rd,
@@ -37,31 +40,31 @@ impl Describer
             } => match opcode {
                 Rv64iOpcodeR::Sllw => (
                     "Shift Left Logical Word",
-                    format3(opcode.to_string(), rd, rs1, rs2),
+                    xformat3(opcode.to_string(), rd, rs1, rs2),
                     "sllw rd,rs1,rs2",
                     "x[rd] = sext((x[rs1] << x[rs2][4:0])[31:0])",
                 ),
                 Rv64iOpcodeR::Srlw => (
                     "Shift Right Logical Word",
-                    format3(opcode.to_string(), rd, rs1, rs2),
+                    xformat3(opcode.to_string(), rd, rs1, rs2),
                     "srlw rd,rs1,rs2",
                     "x[rd] = sext(x[rs1][31:0] >>u x[rs2][4:0])",
                 ),
                 Rv64iOpcodeR::Sraw => (
                     "Shift Right Arithmetic Word",
-                    format3(opcode.to_string(), rd, rs1, rs2),
+                    xformat3(opcode.to_string(), rd, rs1, rs2),
                     "sraw rd,rs1,rs2",
                     "x[rd] = sext(x[rs1][31:0] >>s x[rs2][4:0])",
                 ),
                 Rv64iOpcodeR::Addw => (
                     "Add Word",
-                    format3(opcode.to_string(), rd, rs1, rs2),
+                    xformat3(opcode.to_string(), rd, rs1, rs2),
                     "addw rd,rs1,rs2",
                     "x[rd] = sext(x[rs1] + x[rs2])[31:0]",
                 ),
                 Rv64iOpcodeR::Subw => (
                     "Subtract Word",
-                    format3(opcode.to_string(), rd, rs1, rs2),
+                    xformat3(opcode.to_string(), rd, rs1, rs2),
                     "subw rd,rs1,rs2",
                     "x[rd] = sext(x[rs1] - x[rs2])[31:0]",
                 ),
@@ -75,37 +78,37 @@ impl Describer
             } => match opcode {
                 Rv64iOpcodeI::Slliw => (
                     "Shift Left Logical Word Immediate",
-                    format_immediate(opcode.to_string(), rd, rs1, &(imm & MASK_6BIT)),
+                    xformat_immediate(opcode.to_string(), rd, rs1, shift_amount(imm) as i64),
                     "slliw rd,rs1,shamt",
                     "x[rd] = sext((x[rs1] << shamt)[31:0])",
                 ),
                 Rv64iOpcodeI::Srliw => (
                     "Shift Right Logical Word Immediate",
-                    format_immediate(opcode.to_string(), rd, rs1, &(imm & MASK_6BIT)),
+                    xformat_immediate(opcode.to_string(), rd, rs1, shift_amount(imm) as i64),
                     "srliw rd,rs1,shamt",
                     "x[rd] = sext(x[rs1][31:0] >>u shamt)",
                 ),
                 Rv64iOpcodeI::Sraiw => (
                     "Shift Right Arithmetic Word Immediate",
-                    format_immediate(opcode.to_string(), rd, rs1, &(imm & MASK_6BIT)),
+                    xformat_immediate(opcode.to_string(), rd, rs1, shift_amount(imm) as i64),
                     "sraiw rd,rs1,shamt",
                     "x[rd] = sext(x[rs1][31:0] >>s shamt)",
                 ),
                 Rv64iOpcodeI::Addiw => (
                     "Add Word Immediate",
-                    format_immediate(opcode.to_string(), rd, rs1, &(imm & MASK_6BIT)),
+                    xformat_immediate(opcode.to_string(), rd, rs1, extend_sign(imm, 12)),
                     "addiw rd,rs1,imm",
                     "x[rd] = sext((x[rs1] + sext(imm))[31:0])",
                 ),
                 Rv64iOpcodeI::Lwu => (
                     "Load Word, Unsigned",
-                    format_offset(opcode.to_string(), rd, imm, rs1),
+                    xformat_offset(opcode.to_string(), rd, extend_sign(imm, 12), rs1),
                     "lwu rd,offset(rs1)",
                     "x[rd] = mem[x[rs1] + sext(offset)][31:0]",
                 ),
                 Rv64iOpcodeI::Ld => (
                     "Load Doubleword",
-                    format_offset(opcode.to_string(), rd, imm, rs1),
+                    xformat_offset(opcode.to_string(), rd, extend_sign(imm, 12), rs1),
                     "ld rd,offset(rs1)",
                     "x[rd] = mem[x[rs1] + sext(offset)][63:0]",
                 ),
@@ -119,7 +122,7 @@ impl Describer
             } => match opcode {
                 Rv64iOpcodeS::Sd => (
                     "Store Doubleword",
-                    format_offset(opcode.to_string(), rs2, imm, rs1),
+                    xformat_offset(opcode.to_string(), rs2, extend_sign(imm, 12), rs1),
                     "sd rs2,offset(rs1)",
                     "mem[x[rs1] + sext(offset)] = x[rs2][63:0]",
                 ),

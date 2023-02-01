@@ -1,4 +1,8 @@
-use crate::{emulator::cpu::csr::Csr, isa::csr::user_level::*};
+use crate::{
+    bitops::{MASK_3BIT, MASK_5BIT},
+    emulator::cpu::csr::Csr,
+    isa::csr::user_level::*,
+};
 use std::collections::HashMap;
 
 pub struct UserLevelCsr {
@@ -10,21 +14,46 @@ impl Csr for UserLevelCsr {
         self.csr.contains_key(&address)
     }
 
+    fn read(&self, address: u64) -> u64 {
+        self.csr[&address]
+    }
+
+    fn write(&mut self, address: u64, value: u64) {
+        match address {
+            FFLAGS => {
+                *self.csr.get_mut(&FFLAGS).unwrap() = value;
+                *self.csr.get_mut(&FCSR).unwrap() = (self.csr[&FRM] << 5) & value;
+            }
+            FRM => {
+                *self.csr.get_mut(&FRM).unwrap() = value;
+                *self.csr.get_mut(&FCSR).unwrap() = (value << 5) & self.csr[&FFLAGS];
+            }
+            FCSR => {
+                *self.csr.get_mut(&FFLAGS).unwrap() = value & MASK_5BIT;
+                *self.csr.get_mut(&FRM).unwrap() = (value >> 5) & MASK_3BIT;
+                *self.csr.get_mut(&FCSR).unwrap() = value;
+            }
+            _ => {
+                *self.csr.get_mut(&address).unwrap() = value;
+            }
+        }
+    }
+
     fn csrrw(&mut self, address: u64, value: u64) -> u64 {
         let t = self.csr[&address];
-        *self.csr.get_mut(&address).unwrap() = value;
+        self.write(address, value);
         t
     }
 
     fn csrrs(&mut self, address: u64, value: u64) -> u64 {
         let t = self.csr[&address];
-        *self.csr.get_mut(&address).unwrap() = self.csr[&address] | value;
+        self.write(address, self.csr[&address] | value);
         t
     }
 
     fn csrrc(&mut self, address: u64, value: u64) -> u64 {
         let t = self.csr[&address];
-        *self.csr.get_mut(&address).unwrap() = self.csr[&address] & !value;
+        self.write(address, self.csr[&address] & !value);
         t
     }
 }
@@ -80,38 +109,38 @@ impl Default for UserLevelCsr {
                 HPMCOUNTER29,
                 HPMCOUNTER30,
                 HPMCOUNTER31,
-                CYCLEH,
-                TIMEH,
-                INSTRETH,
-                HPMCOUNTER3H,
-                HPMCOUNTER4H,
-                HPMCOUNTER5H,
-                HPMCOUNTER6H,
-                HPMCOUNTER7H,
-                HPMCOUNTER8H,
-                HPMCOUNTER9H,
-                HPMCOUNTER10H,
-                HPMCOUNTER11H,
-                HPMCOUNTER12H,
-                HPMCOUNTER13H,
-                HPMCOUNTER14H,
-                HPMCOUNTER15H,
-                HPMCOUNTER16H,
-                HPMCOUNTER17H,
-                HPMCOUNTER18H,
-                HPMCOUNTER19H,
-                HPMCOUNTER20H,
-                HPMCOUNTER21H,
-                HPMCOUNTER22H,
-                HPMCOUNTER23H,
-                HPMCOUNTER24H,
-                HPMCOUNTER25H,
-                HPMCOUNTER26H,
-                HPMCOUNTER27H,
-                HPMCOUNTER28H,
-                HPMCOUNTER29H,
-                HPMCOUNTER30H,
-                HPMCOUNTER31H,
+                CYCLEH,        // RV32I only
+                TIMEH,         // RV32I only
+                INSTRETH,      // RV32I only
+                HPMCOUNTER3H,  // RV32I only
+                HPMCOUNTER4H,  // RV32I only
+                HPMCOUNTER5H,  // RV32I only
+                HPMCOUNTER6H,  // RV32I only
+                HPMCOUNTER7H,  // RV32I only
+                HPMCOUNTER8H,  // RV32I only
+                HPMCOUNTER9H,  // RV32I only
+                HPMCOUNTER10H, // RV32I only
+                HPMCOUNTER11H, // RV32I only
+                HPMCOUNTER12H, // RV32I only
+                HPMCOUNTER13H, // RV32I only
+                HPMCOUNTER14H, // RV32I only
+                HPMCOUNTER15H, // RV32I only
+                HPMCOUNTER16H, // RV32I only
+                HPMCOUNTER17H, // RV32I only
+                HPMCOUNTER18H, // RV32I only
+                HPMCOUNTER19H, // RV32I only
+                HPMCOUNTER20H, // RV32I only
+                HPMCOUNTER21H, // RV32I only
+                HPMCOUNTER22H, // RV32I only
+                HPMCOUNTER23H, // RV32I only
+                HPMCOUNTER24H, // RV32I only
+                HPMCOUNTER25H, // RV32I only
+                HPMCOUNTER26H, // RV32I only
+                HPMCOUNTER27H, // RV32I only
+                HPMCOUNTER28H, // RV32I only
+                HPMCOUNTER29H, // RV32I only
+                HPMCOUNTER30H, // RV32I only
+                HPMCOUNTER31H, // RV32I only
             ]
             .iter()
             .cloned()

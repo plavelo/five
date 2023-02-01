@@ -1,6 +1,6 @@
 use std::fmt;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum PrivilegedOpcodeR {
     Uret,
     Sret,
@@ -11,7 +11,7 @@ pub enum PrivilegedOpcodeR {
 
 impl fmt::Display for PrivilegedOpcodeR {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
+        match self {
             Self::Uret => f.write_str("uret"),
             Self::Sret => f.write_str("sret"),
             Self::Mret => f.write_str("mret"),
@@ -21,42 +21,17 @@ impl fmt::Display for PrivilegedOpcodeR {
     }
 }
 
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum PrivilegedOpcodeI {}
 
-impl fmt::Display for PrivilegedOpcodeI {
-    fn fmt(&self, _: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Result::Err(fmt::Error)
-    }
-}
-
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum PrivilegedOpcodeS {}
 
-impl fmt::Display for PrivilegedOpcodeS {
-    fn fmt(&self, _: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Result::Err(fmt::Error)
-    }
-}
-
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum PrivilegedOpcodeB {}
 
-impl fmt::Display for PrivilegedOpcodeB {
-    fn fmt(&self, _: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Result::Err(fmt::Error)
-    }
-}
-
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum PrivilegedOpcodeU {}
 
-impl fmt::Display for PrivilegedOpcodeU {
-    fn fmt(&self, _: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Result::Err(fmt::Error)
-    }
-}
-
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum PrivilegedOpcodeJ {}
-
-impl fmt::Display for PrivilegedOpcodeJ {
-    fn fmt(&self, _: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Result::Err(fmt::Error)
-    }
-}

@@ -1,5 +1,5 @@
 use crate::isa::{
-    description::{format2, Describer, Description},
+    description::{xformat2, Describer, Description},
     instruction::{
         privileged::{
             PrivilegedOpcodeB, PrivilegedOpcodeI, PrivilegedOpcodeJ, PrivilegedOpcodeR,
@@ -27,7 +27,7 @@ impl Describer
     type OpcodeJ = PrivilegedOpcodeJ;
 
     fn describe(&self) -> Description {
-        let (description, assembly, signature, pseudocode) = match self {
+        let (description, assembly, signature, pseudocode) = match *self {
             Self::TypeR {
                 opcode,
                 rd: _,
@@ -62,7 +62,7 @@ impl Describer
                 ),
                 PrivilegedOpcodeR::SfenceVma => (
                     "Fence Virtual Memory",
-                    format2(opcode.to_string(), rs1, rs2),
+                    xformat2(opcode.to_string(), rs1, rs2),
                     "sfence.vma rs1,rs2",
                     "while (noInterruptsPending) idle",
                 ),

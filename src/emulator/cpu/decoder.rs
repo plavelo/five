@@ -84,7 +84,7 @@ pub trait Decoder {
             let rd = ((instruction >> 7) & MASK_5BIT) as usize;
             let funct3 = ((instruction >> 12) & MASK_3BIT) as usize;
             let rs1 = ((instruction >> 15) & MASK_5BIT) as usize;
-            let imm = ((instruction as i32) >> 20) as u64;
+            let imm = (instruction >> 20) as u64;
             Instruction::TypeI {
                 opcode: o,
                 rd,

@@ -27,7 +27,7 @@ impl Describer
     type OpcodeJ = ZifenceiOpcodeJ;
 
     fn describe(&self) -> Description {
-        let (description, assembly, signature, pseudocode) = match self {
+        let (description, assembly, signature, pseudocode) = match *self {
             Self::TypeI {
                 opcode,
                 rd: _,

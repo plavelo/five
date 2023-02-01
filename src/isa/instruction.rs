@@ -7,7 +7,7 @@ pub mod rv64m;
 pub mod zicsr;
 pub mod zifencei;
 
-use crate::isa::register::register_name;
+use crate::isa::register::to_xname;
 use std::fmt;
 
 #[derive(Debug, PartialEq)]
@@ -75,10 +75,10 @@ impl<
                 f,
                 "{}, rd: {}, funct3: {}, rs1: {}, rs2: {}, funct7: {}",
                 opcode,
-                register_name(*rd),
+                to_xname(*rd),
                 funct3,
-                register_name(*rs1),
-                register_name(*rs2),
+                to_xname(*rs1),
+                to_xname(*rs2),
                 funct7,
             ),
             Self::TypeI {
@@ -91,9 +91,9 @@ impl<
                 f,
                 "{}, rd: {}, funct3: {}, rs1: {}, imm: {:x}",
                 opcode,
-                register_name(*rd),
+                to_xname(*rd),
                 funct3,
-                register_name(*rs1),
+                to_xname(*rs1),
                 imm,
             ),
             Self::TypeS {
@@ -107,8 +107,8 @@ impl<
                 "{}, funct3: {}, rs1: {}, rs2: {}, imm: {:x}",
                 opcode,
                 funct3,
-                register_name(*rs1),
-                register_name(*rs2),
+                to_xname(*rs1),
+                to_xname(*rs2),
                 imm,
             ),
             Self::TypeB {
@@ -122,15 +122,15 @@ impl<
                 "{}, funct3: {}, rs1: {}, rs2: {}, imm: {:x}",
                 opcode,
                 funct3,
-                register_name(*rs1),
-                register_name(*rs2),
+                to_xname(*rs1),
+                to_xname(*rs2),
                 imm,
             ),
             Self::TypeU { opcode, rd, imm } => {
-                write!(f, "{}, rd: {}, imm: {:x}", opcode, register_name(*rd), imm,)
+                write!(f, "{}, rd: {}, imm: {:x}", opcode, to_xname(*rd), imm,)
             }
             Self::TypeJ { opcode, rd, imm } => {
-                write!(f, "{}, rd: {}, imm: {:x}", opcode, register_name(*rd), imm,)
+                write!(f, "{}, rd: {}, imm: {:x}", opcode, to_xname(*rd), imm,)
             }
         }
     }

@@ -1,12 +1,10 @@
 use crate::{
+    bitops::{extend_sign, MASK_5BIT, MASK_6BIT},
     emulator::{
         bus::SystemBus,
         cpu::{
-            csr::ControlAndStatusRegister,
-            executor::{extend_sign, Executor, MASK_5BIT, MASK_6BIT},
-            f::FloatingPointRegister,
-            pc::ProgramCounter,
-            x::IntegerRegister,
+            csr::ControlAndStatusRegister, executor::Executor, f::FloatingPointRegister,
+            pc::ProgramCounter, x::IntegerRegister,
         },
     },
     isa::{
@@ -94,15 +92,16 @@ impl Executor for Rv64iExecutor {
                 }
                 Rv64iOpcodeI::Addiw => x.writei(
                     rd,
-                    x.readi(rs1).wrapping_add(extend_sign(imm, 12)) as u32 as i32 as i64,
+                    extend_sign(x.readi(rs1).wrapping_add(extend_sign(imm, 12)) as u64, 32),
                 ),
                 Rv64iOpcodeI::Lwu => x.writeu(
                     rd,
-                    bus.load32(x.readi(rs1).wrapping_add(imm as i64) as u64) as u64,
+                    bus.load32(x.readi(rs1).wrapping_add(extend_sign(imm, 12)) as u64) as u64,
                 ),
-                Rv64iOpcodeI::Ld => {
-                    x.writeu(rd, bus.load64(x.readi(rs1).wrapping_add(imm as i64) as u64))
-                }
+                Rv64iOpcodeI::Ld => x.writeu(
+                    rd,
+                    bus.load64(x.readi(rs1).wrapping_add(extend_sign(imm, 12)) as u64),
+                ),
             },
             Instruction::TypeS {
                 opcode,

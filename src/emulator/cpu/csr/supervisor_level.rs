@@ -10,21 +10,29 @@ impl Csr for SupervisorLevelCsr {
         self.csr.contains_key(&address)
     }
 
+    fn read(&self, address: u64) -> u64 {
+        self.csr[&address]
+    }
+
+    fn write(&mut self, address: u64, value: u64) {
+        *self.csr.get_mut(&address).unwrap() = value;
+    }
+
     fn csrrw(&mut self, address: u64, value: u64) -> u64 {
         let t = self.csr[&address];
-        *self.csr.get_mut(&address).unwrap() = value;
+        self.write(address, value);
         t
     }
 
     fn csrrs(&mut self, address: u64, value: u64) -> u64 {
         let t = self.csr[&address];
-        *self.csr.get_mut(&address).unwrap() = self.csr[&address] | value;
+        self.write(address, self.csr[&address] | value);
         t
     }
 
     fn csrrc(&mut self, address: u64, value: u64) -> u64 {
         let t = self.csr[&address];
-        *self.csr.get_mut(&address).unwrap() = self.csr[&address] & !value;
+        self.write(address, self.csr[&address] & !value);
         t
     }
 }
