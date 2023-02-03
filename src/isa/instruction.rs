@@ -1,4 +1,5 @@
 pub mod privileged;
+pub mod rv32f;
 pub mod rv32i;
 pub mod rv32m;
 pub mod rv64i;
@@ -6,30 +7,36 @@ pub mod rv64m;
 pub mod zicsr;
 pub mod zifencei;
 
+use crate::isa::register::to_xname;
 use std::fmt;
 
 #[derive(Debug, PartialEq)]
 pub enum Instruction<OpcodeR, OpcodeI, OpcodeS, OpcodeB, OpcodeU, OpcodeJ> {
     TypeR {
         opcode: OpcodeR,
+        rd: usize,
+        funct3: usize,
         rs1: usize,
         rs2: usize,
-        rd: usize,
+        funct7: usize,
     },
     TypeI {
         opcode: OpcodeI,
-        rs1: usize,
         rd: usize,
+        funct3: usize,
+        rs1: usize,
         imm: u64,
     },
     TypeS {
         opcode: OpcodeS,
+        funct3: usize,
         rs1: usize,
         rs2: usize,
         imm: u64,
     },
     TypeB {
         opcode: OpcodeB,
+        funct3: usize,
         rs1: usize,
         rs2: usize,
         imm: u64,
@@ -57,56 +64,74 @@ impl<
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Instruction::TypeR {
+            Self::TypeR {
                 opcode,
-                rs1,
-                rs2,
                 rd,
+                funct3,
+                rs1,
+                rs2,
+                funct7,
             } => write!(
                 f,
-                "Instruction::TypeR {{ opcode: {}, rs1: {}, rs2: {}, rd: {} }}",
-                opcode, rs1, rs2, rd,
-            ),
-            Instruction::TypeI {
+                "{}, rd: {}, funct3: {}, rs1: {}, rs2: {}, funct7: {}",
                 opcode,
-                rs1,
+                to_xname(*rd),
+                funct3,
+                to_xname(*rs1),
+                to_xname(*rs2),
+                funct7,
+            ),
+            Self::TypeI {
+                opcode,
                 rd,
+                funct3,
+                rs1,
                 imm,
             } => write!(
                 f,
-                "Instruction::TypeI {{ opcode: {}, rs1: {}, rd: {}, imm: {} }}",
-                opcode, rs1, rd, imm,
-            ),
-            Instruction::TypeS {
+                "{}, rd: {}, funct3: {}, rs1: {}, imm: {:x}",
                 opcode,
+                to_xname(*rd),
+                funct3,
+                to_xname(*rs1),
+                imm,
+            ),
+            Self::TypeS {
+                opcode,
+                funct3,
                 rs1,
                 rs2,
                 imm,
             } => write!(
                 f,
-                "Instruction::TypeS {{ opcode: {}, rs1: {}, rs2: {}, imm: {} }}",
-                opcode, rs1, rs2, imm,
-            ),
-            Instruction::TypeB {
+                "{}, funct3: {}, rs1: {}, rs2: {}, imm: {:x}",
                 opcode,
+                funct3,
+                to_xname(*rs1),
+                to_xname(*rs2),
+                imm,
+            ),
+            Self::TypeB {
+                opcode,
+                funct3,
                 rs1,
                 rs2,
                 imm,
             } => write!(
                 f,
-                "Instruction::TypeB {{ opcode: {}, rs1: {}, rs2: {}, imm: {} }}",
-                opcode, rs1, rs2, imm,
+                "{}, funct3: {}, rs1: {}, rs2: {}, imm: {:x}",
+                opcode,
+                funct3,
+                to_xname(*rs1),
+                to_xname(*rs2),
+                imm,
             ),
-            Instruction::TypeU { opcode, rd, imm } => write!(
-                f,
-                "Instruction::TypeU {{ opcode: {}, rd: {}, imm: {} }}",
-                opcode, rd, imm,
-            ),
-            Instruction::TypeJ { opcode, rd, imm } => write!(
-                f,
-                "Instruction::TypeJ {{ opcode: {}, rd: {}, imm: {} }}",
-                opcode, rd, imm,
-            ),
+            Self::TypeU { opcode, rd, imm } => {
+                write!(f, "{}, rd: {}, imm: {:x}", opcode, to_xname(*rd), imm,)
+            }
+            Self::TypeJ { opcode, rd, imm } => {
+                write!(f, "{}, rd: {}, imm: {:x}", opcode, to_xname(*rd), imm,)
+            }
         }
     }
 }

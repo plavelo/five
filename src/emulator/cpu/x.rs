@@ -1,69 +1,6 @@
-use crate::emulator::memory::MEMORY_SIZE;
-
-pub const ZERO: usize = 0;
-#[allow(dead_code)]
-pub const RA: usize = 1;
-pub const SP: usize = 2;
-#[allow(dead_code)]
-pub const GP: usize = 3;
-#[allow(dead_code)]
-pub const TP: usize = 4;
-#[allow(dead_code)]
-pub const T0: usize = 5;
-#[allow(dead_code)]
-pub const T1: usize = 6;
-#[allow(dead_code)]
-pub const T2: usize = 7;
-#[allow(dead_code)]
-pub const S0: usize = 8;
-#[allow(dead_code)]
-pub const FP: usize = 8;
-#[allow(dead_code)]
-pub const S1: usize = 9;
-#[allow(dead_code)]
-pub const A0: usize = 10;
-#[allow(dead_code)]
-pub const A1: usize = 11;
-#[allow(dead_code)]
-pub const A2: usize = 12;
-#[allow(dead_code)]
-pub const A3: usize = 13;
-#[allow(dead_code)]
-pub const A4: usize = 14;
-#[allow(dead_code)]
-pub const A5: usize = 15;
-#[allow(dead_code)]
-pub const A6: usize = 16;
-#[allow(dead_code)]
-pub const A7: usize = 17;
-#[allow(dead_code)]
-pub const S2: usize = 18;
-#[allow(dead_code)]
-pub const S3: usize = 19;
-#[allow(dead_code)]
-pub const S4: usize = 20;
-#[allow(dead_code)]
-pub const S5: usize = 21;
-#[allow(dead_code)]
-pub const S6: usize = 22;
-#[allow(dead_code)]
-pub const S7: usize = 23;
-#[allow(dead_code)]
-pub const S8: usize = 24;
-#[allow(dead_code)]
-pub const S9: usize = 25;
-#[allow(dead_code)]
-pub const S10: usize = 26;
-#[allow(dead_code)]
-pub const S11: usize = 27;
-#[allow(dead_code)]
-pub const T3: usize = 28;
-#[allow(dead_code)]
-pub const T4: usize = 29;
-#[allow(dead_code)]
-pub const T5: usize = 30;
-#[allow(dead_code)]
-pub const T6: usize = 31;
+use crate::isa::register::{SP, ZERO};
+use crate::{emulator::bus::memory::MEMORY_SIZE, isa::register::to_xname};
+use std::fmt;
 
 pub struct IntegerRegister {
     x: [u64; 32],
@@ -96,5 +33,102 @@ impl IntegerRegister {
         if register != ZERO {
             self.x[register] = value;
         }
+    }
+
+    pub fn snapshot(&self) -> [u64; 32] {
+        self.x
+    }
+
+    pub fn diff(&self, other: [u64; 32]) -> Vec<(usize, u64, u64)> {
+        let mut result = vec![];
+        for (i, x) in self.x.iter().enumerate() {
+            let o = other[i];
+            if *x != o {
+                result.push((i, o, *x));
+            }
+        }
+        result
+    }
+}
+
+impl fmt::Display for IntegerRegister {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str(
+            format!(
+                "{:4}:{:16x}, {:4}:{:16x}, {:4}:{:16x}, {:4}:{:16x}\n\
+                {:4}:{:16x}, {:4}:{:16x}, {:4}:{:16x}, {:4}:{:16x}\n\
+                {:4}:{:16x}, {:4}:{:16x}, {:4}:{:16x}, {:4}:{:16x}\n\
+                {:4}:{:16x}, {:4}:{:16x}, {:4}:{:16x}, {:4}:{:16x}\n\
+                {:4}:{:16x}, {:4}:{:16x}, {:4}:{:16x}, {:4}:{:16x}\n\
+                {:4}:{:16x}, {:4}:{:16x}, {:4}:{:16x}, {:4}:{:16x}\n\
+                {:4}:{:16x}, {:4}:{:16x}, {:4}:{:16x}, {:4}:{:16x}\n\
+                {:4}:{:16x}, {:4}:{:16x}, {:4}:{:16x}, {:4}:{:16x}",
+                to_xname(0),
+                self.readu(0),
+                to_xname(8),
+                self.readu(8),
+                to_xname(16),
+                self.readu(16),
+                to_xname(24),
+                self.readu(24),
+                to_xname(1),
+                self.readu(1),
+                to_xname(9),
+                self.readu(9),
+                to_xname(17),
+                self.readu(17),
+                to_xname(25),
+                self.readu(25),
+                to_xname(2),
+                self.readu(2),
+                to_xname(10),
+                self.readu(10),
+                to_xname(18),
+                self.readu(18),
+                to_xname(26),
+                self.readu(26),
+                to_xname(3),
+                self.readu(3),
+                to_xname(11),
+                self.readu(11),
+                to_xname(19),
+                self.readu(19),
+                to_xname(27),
+                self.readu(27),
+                to_xname(4),
+                self.readu(4),
+                to_xname(12),
+                self.readu(12),
+                to_xname(20),
+                self.readu(20),
+                to_xname(28),
+                self.readu(28),
+                to_xname(5),
+                self.readu(5),
+                to_xname(13),
+                self.readu(13),
+                to_xname(21),
+                self.readu(21),
+                to_xname(29),
+                self.readu(29),
+                to_xname(6),
+                self.readu(6),
+                to_xname(14),
+                self.readu(14),
+                to_xname(22),
+                self.readu(22),
+                to_xname(30),
+                self.readu(30),
+                to_xname(7),
+                self.readu(7),
+                to_xname(15),
+                self.readu(15),
+                to_xname(23),
+                self.readu(23),
+                to_xname(31),
+                self.readu(31),
+            )
+            .as_str(),
+        )
     }
 }

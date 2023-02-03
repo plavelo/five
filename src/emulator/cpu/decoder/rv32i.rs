@@ -90,23 +90,23 @@ impl Decoder for Rv32iDecoder {
                 instruction,
             ),
             0b0110011 => Self::decode_r(
-                match funct3 {
-                    0b000 => match funct7 {
-                        0b0000000 => Some(Rv32iOpcodeR::Add),
-                        0b0100000 => Some(Rv32iOpcodeR::Sub),
+                match funct7 {
+                    0b0000000 => match funct3 {
+                        0b000 => Some(Rv32iOpcodeR::Add),
+                        0b001 => Some(Rv32iOpcodeR::Sll),
+                        0b010 => Some(Rv32iOpcodeR::Slt),
+                        0b011 => Some(Rv32iOpcodeR::Sltu),
+                        0b100 => Some(Rv32iOpcodeR::Xor),
+                        0b101 => Some(Rv32iOpcodeR::Srl),
+                        0b110 => Some(Rv32iOpcodeR::Or),
+                        0b111 => Some(Rv32iOpcodeR::And),
                         _ => None,
                     },
-                    0b001 => Some(Rv32iOpcodeR::Sll),
-                    0b010 => Some(Rv32iOpcodeR::Slt),
-                    0b011 => Some(Rv32iOpcodeR::Sltu),
-                    0b100 => Some(Rv32iOpcodeR::Xor),
-                    0b101 => match funct7 {
-                        0b0000000 => Some(Rv32iOpcodeR::Srl),
-                        0b0100000 => Some(Rv32iOpcodeR::Sra),
+                    0b0100000 => match funct3 {
+                        0b000 => Some(Rv32iOpcodeR::Sub),
+                        0b101 => Some(Rv32iOpcodeR::Sra),
                         _ => None,
                     },
-                    0b110 => Some(Rv32iOpcodeR::Or),
-                    0b111 => Some(Rv32iOpcodeR::And),
                     _ => None,
                 },
                 instruction,
@@ -135,6 +135,7 @@ impl Decoder for Rv32iDecoder {
 }
 
 #[cfg(test)]
+#[allow(clippy::unusual_byte_groupings)]
 mod tests {
     use super::*;
 
@@ -145,9 +146,11 @@ mod tests {
             Rv32iDecoder::decode(inst).unwrap(),
             Instruction::TypeR {
                 opcode: Rv32iOpcodeR::Add,
+                rd: 0b10101,
+                funct3: 0,
                 rs1: 0b01010,
                 rs2: 0b00101,
-                rd: 0b10101,
+                funct7: 0b0,
             }
         );
     }
@@ -159,9 +162,10 @@ mod tests {
             Rv32iDecoder::decode(inst).unwrap(),
             Instruction::TypeI {
                 opcode: Rv32iOpcodeI::Jalr,
-                rs1: 0b01010,
                 rd: 0b00101,
-                imm: 0b11111111111111111111111111111111_11111111111111111111100000000101,
+                funct3: 0,
+                rs1: 0b01010,
+                imm: 0b100000000101,
             }
         );
     }
@@ -173,6 +177,7 @@ mod tests {
             Rv32iDecoder::decode(inst).unwrap(),
             Instruction::TypeS {
                 opcode: Rv32iOpcodeS::Sb,
+                funct3: 0,
                 rs1: 0b01010,
                 rs2: 0b00101,
                 imm: 0b11111111111111111111111111111111_11111111111111111111_1010101_10101,
@@ -187,6 +192,7 @@ mod tests {
             Rv32iDecoder::decode(inst).unwrap(),
             Instruction::TypeB {
                 opcode: Rv32iOpcodeB::Beq,
+                funct3: 0,
                 rs1: 0b01010,
                 rs2: 0b00101,
                 imm: 0b11111111111111111111111111111111_11111111111111111111_1_010101_1010_0,
@@ -202,7 +208,7 @@ mod tests {
             Instruction::TypeU {
                 opcode: Rv32iOpcodeU::Auipc,
                 rd: 0b00101,
-                imm: 0b00000000000000000000000000000000_010101010101_00000_0000000,
+                imm: 0b00000000000000000000000000000000000000000000_010101010101,
             }
         );
     }

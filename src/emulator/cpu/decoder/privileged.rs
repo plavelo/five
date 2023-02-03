@@ -40,13 +40,19 @@ impl Decoder for PrivilegedDecoder {
             0b1110011 => Self::decode_r(
                 match funct3 {
                     0b000 => match funct7 {
-                        0b0000000 => Some(PrivilegedOpcodeR::Uret),
+                        0b0000000 => match rs2 {
+                            0b00010 => Some(PrivilegedOpcodeR::Uret),
+                            _ => None,
+                        },
                         0b0001000 => match rs2 {
                             0b00010 => Some(PrivilegedOpcodeR::Sret),
                             0b00101 => Some(PrivilegedOpcodeR::Wfi),
                             _ => None,
                         },
-                        0b0011000 => Some(PrivilegedOpcodeR::Mret),
+                        0b0011000 => match rs2 {
+                            0b00010 => Some(PrivilegedOpcodeR::Mret),
+                            _ => None,
+                        },
                         0b0001001 => Some(PrivilegedOpcodeR::SfenceVma),
                         _ => None,
                     },

@@ -1,6 +1,6 @@
 use std::fmt;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Rv64mOpcodeR {
     Mulw,
     Divw,
@@ -11,18 +11,27 @@ pub enum Rv64mOpcodeR {
 
 impl fmt::Display for Rv64mOpcodeR {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            Rv64mOpcodeR::Mulw => f.write_str("Rv64m::Mulw"),
-            Rv64mOpcodeR::Divw => f.write_str("Rv64m::Divw"),
-            Rv64mOpcodeR::Divuw => f.write_str("Rv64m::Divuw"),
-            Rv64mOpcodeR::Remw => f.write_str("Rv64m::Remw"),
-            Rv64mOpcodeR::Remuw => f.write_str("Rv64m::Remuw"),
+        match self {
+            Self::Mulw => f.write_str("mulw"),
+            Self::Divw => f.write_str("divw"),
+            Self::Divuw => f.write_str("divuw"),
+            Self::Remw => f.write_str("remw"),
+            Self::Remuw => f.write_str("remuw"),
         }
     }
 }
 
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Rv64mOpcodeI {}
+
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Rv64mOpcodeS {}
+
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Rv64mOpcodeB {}
+
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Rv64mOpcodeU {}
+
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Rv64mOpcodeJ {}
