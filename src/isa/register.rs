@@ -64,7 +64,7 @@ pub const FT9: usize = 29;
 pub const FT10: usize = 30;
 pub const FT11: usize = 31;
 
-pub fn to_xname<'a>(register: usize) -> &'a str {
+pub fn xname<'a>(register: usize) -> &'a str {
     match register {
         ZERO => "zero",
         RA => "ra",
@@ -102,7 +102,7 @@ pub fn to_xname<'a>(register: usize) -> &'a str {
     }
 }
 
-pub fn to_fname<'a>(register: usize) -> &'a str {
+pub fn fname<'a>(register: usize) -> &'a str {
     match register {
         FT0 => "ft0",
         FT1 => "ft1",

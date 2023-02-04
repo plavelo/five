@@ -1,11 +1,12 @@
 use crate::isa::{
-    description::{xformat3, Describer, Description},
+    description::{format3, Describer, Description},
     instruction::{
         rv32m::{
             Rv32mOpcodeB, Rv32mOpcodeI, Rv32mOpcodeJ, Rv32mOpcodeR, Rv32mOpcodeS, Rv32mOpcodeU,
         },
         Instruction,
     },
+    register::xname,
 };
 
 impl Describer
@@ -37,49 +38,49 @@ impl Describer
             } => match opcode {
                 Rv32mOpcodeR::Mul => (
                     "Multiply",
-                    xformat3(opcode.to_string(), rd, rs1, rs2),
+                    format3(opcode.to_string(), xname(rd), xname(rs1), xname(rs2)),
                     "mul rd,rs1,rs2",
                     "x[rd] = x[rs1] * x[rs2]",
                 ),
                 Rv32mOpcodeR::Mulh => (
                     "Multiply High",
-                    xformat3(opcode.to_string(), rd, rs1, rs2),
+                    format3(opcode.to_string(), xname(rd), xname(rs1), xname(rs2)),
                     "mulh rd,rs1,rs2",
                     "x[rd] = (x[rs1] s*s x[rs2]) >>s XLEN",
                 ),
                 Rv32mOpcodeR::Mulhsu => (
                     "Multiply High Signed-Unsigned",
-                    xformat3(opcode.to_string(), rd, rs1, rs2),
+                    format3(opcode.to_string(), xname(rd), xname(rs1), xname(rs2)),
                     "mulhsu rd,rs1,rs2",
                     "x[rd] = (x[rs1] s*u x[rs2]) >>s XLEN",
                 ),
                 Rv32mOpcodeR::Mulhu => (
                     "Multiply High Unsined",
-                    xformat3(opcode.to_string(), rd, rs1, rs2),
+                    format3(opcode.to_string(), xname(rd), xname(rs1), xname(rs2)),
                     "mulhu rd,rs1,rs2",
                     "x[rd] = (x[rs1] u*u x[rs2]) >>u XLEN",
                 ),
                 Rv32mOpcodeR::Div => (
                     "Divide",
-                    xformat3(opcode.to_string(), rd, rs1, rs2),
+                    format3(opcode.to_string(), xname(rd), xname(rs1), xname(rs2)),
                     "div rd,rs1,rs2",
                     "x[rd] = x[rs1] /s x[rs2]",
                 ),
                 Rv32mOpcodeR::Divu => (
                     "Divide, Unsigned",
-                    xformat3(opcode.to_string(), rd, rs1, rs2),
+                    format3(opcode.to_string(), xname(rd), xname(rs1), xname(rs2)),
                     "divu rd,rs1,rs2",
                     "x[rd] = x[rs1] /u x[rs2]",
                 ),
                 Rv32mOpcodeR::Rem => (
                     "Reminder",
-                    xformat3(opcode.to_string(), rd, rs1, rs2),
+                    format3(opcode.to_string(), xname(rd), xname(rs1), xname(rs2)),
                     "rem rd,rs1,rs2",
                     "x[rd] = x[rs1] %s x[rs2]",
                 ),
                 Rv32mOpcodeR::Remu => (
                     "Reminder, Unsigned",
-                    xformat3(opcode.to_string(), rd, rs1, rs2),
+                    format3(opcode.to_string(), xname(rd), xname(rs1), xname(rs2)),
                     "remu rd,rs1,rs2",
                     "x[rd] = x[rs1] %u x[rs2]",
                 ),

@@ -1,11 +1,12 @@
 use crate::isa::{
-    description::{xformat3, Describer, Description},
+    description::{format3, Describer, Description},
     instruction::{
         rv64m::{
             Rv64mOpcodeB, Rv64mOpcodeI, Rv64mOpcodeJ, Rv64mOpcodeR, Rv64mOpcodeS, Rv64mOpcodeU,
         },
         Instruction,
     },
+    register::xname,
 };
 
 impl Describer
@@ -37,31 +38,31 @@ impl Describer
             } => match opcode {
                 Rv64mOpcodeR::Mulw => (
                     "Multiply Word",
-                    xformat3(opcode.to_string(), rd, rs1, rs2),
+                    format3(opcode.to_string(), xname(rd), xname(rs1), xname(rs2)),
                     "mulw rd,rs1,rs2",
                     "x[rd] = sext((x[rs1] * x[rs2])[31:0])",
                 ),
                 Rv64mOpcodeR::Divw => (
                     "Divide Word",
-                    xformat3(opcode.to_string(), rd, rs1, rs2),
+                    format3(opcode.to_string(), xname(rd), xname(rs1), xname(rs2)),
                     "divw rd,rs1,rs2",
                     "x[rd] = sext(x[rs1][31:0] /s x[rs2][31:0])",
                 ),
                 Rv64mOpcodeR::Divuw => (
                     "Divide Word, Unsigned",
-                    xformat3(opcode.to_string(), rd, rs1, rs2),
+                    format3(opcode.to_string(), xname(rd), xname(rs1), xname(rs2)),
                     "divuw rd,rs1,rs2",
                     "x[rd] = sext(x[rs1][31:0] /u x[rs2][31:0])",
                 ),
                 Rv64mOpcodeR::Remw => (
                     "Reminder Word",
-                    xformat3(opcode.to_string(), rd, rs1, rs2),
+                    format3(opcode.to_string(), xname(rd), xname(rs1), xname(rs2)),
                     "remw rd,rs1,rs2",
                     "x[rd] = sext(x[rs1][31:0] %s x[rs2][31:0])",
                 ),
                 Rv64mOpcodeR::Remuw => (
                     "Reminder Word, Unsigned",
-                    xformat3(opcode.to_string(), rd, rs1, rs2),
+                    format3(opcode.to_string(), xname(rd), xname(rs1), xname(rs2)),
                     "remuw rd,rs1,rs2",
                     "x[rd] = sext(x[rs1][31:0] %u x[rs2][31:0])",
                 ),

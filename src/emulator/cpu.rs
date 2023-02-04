@@ -33,7 +33,7 @@ use crate::{
         csr::user_level::{CYCLE, INSTRET, TIME},
         description::Describer,
         privileged::mode::PrivilegeMode,
-        register::{to_fname, to_xname},
+        register::{fname, xname},
     },
 };
 
@@ -211,14 +211,14 @@ impl Cpu {
         let diffx = self.x.diff(xsnapshot);
         if !diffx.is_empty() {
             for d in diffx {
-                println!("{:8}: {:x} -> {:x}", to_xname(d.0), d.1, d.2);
+                println!("{:8}: {:x} -> {:x}", xname(d.0), d.1, d.2);
             }
             println!("{}", "-".repeat(90));
         }
         let difff = self.f.diff(fsnapshot);
         if !difff.is_empty() {
             for d in difff {
-                println!("{:8}: {:x} -> {:x}", to_fname(d.0), d.1, d.2);
+                println!("{:8}: {:x} -> {:x}", fname(d.0), d.1, d.2);
             }
             println!("{}", "-".repeat(90));
         }
