@@ -318,24 +318,25 @@ impl Executor for Rv32fExecutor {
                         // Accumulating CSRs: None
                         let value = Single::decode(f.reads(rs1));
                         let class = if value.is_negative() && value.is_infinite() {
-                            0
+                            0b0000000001
                         } else if value.is_negative() && value.is_normal() {
-                            1
+                            0b0000000010
                         } else if value.is_negative() && value.is_denormal() {
-                            2
+                            0b0000000100
                         } else if value.is_neg_zero() {
-                            3
+                            0b0000001000
                         } else if value.is_pos_zero() {
-                            4
+                            0b0000010000
                         } else if !value.is_negative() && value.is_denormal() {
-                            5
+                            0b0000100000
                         } else if !value.is_negative() && value.is_normal() {
-                            6
+                            0b0001000000
                         } else if !value.is_negative() && value.is_infinite() {
-                            7
+                            0b0010000000
+                        } else if value.is_signaling() {
+                            0b0100000000
                         } else {
-                            // TODO: supports signaling NaN / quiet NaN
-                            9
+                            0b1000000000
                         };
                         x.writeu(rd, class);
                         None
