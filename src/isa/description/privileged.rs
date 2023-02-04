@@ -1,5 +1,5 @@
 use crate::isa::{
-    description::{xformat2, Describer, Description},
+    description::{format2, Describer, Description},
     instruction::{
         privileged::{
             PrivilegedOpcodeB, PrivilegedOpcodeI, PrivilegedOpcodeJ, PrivilegedOpcodeR,
@@ -7,6 +7,7 @@ use crate::isa::{
         },
         Instruction,
     },
+    register::xname,
 };
 
 impl Describer
@@ -62,7 +63,7 @@ impl Describer
                 ),
                 PrivilegedOpcodeR::SfenceVma => (
                     "Fence Virtual Memory",
-                    xformat2(opcode.to_string(), rs1, rs2),
+                    format2(opcode.to_string(), xname(rs1), xname(rs2)),
                     "sfence.vma rs1,rs2",
                     "while (noInterruptsPending) idle",
                 ),

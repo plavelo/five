@@ -7,83 +7,30 @@ pub mod rv64m;
 pub mod zicsr;
 pub mod zifencei;
 
-use crate::isa::register::{to_fname, to_xname};
 use std::fmt;
 
-fn xformat2(opcode: String, x1: usize, x2: usize) -> String {
-    format!("{} {},{}", opcode, to_xname(x1), to_xname(x2),)
+fn format2(opcode: String, r1: &str, r2: &str) -> String {
+    format!("{} {},{}", opcode, r1, r2)
 }
 
-fn fformat2(opcode: String, f1: usize, f2: usize) -> String {
-    format!("{} {},{}", opcode, to_fname(f1), to_fname(f2),)
+fn format3(opcode: String, r1: &str, r2: &str, r3: &str) -> String {
+    format!("{} {},{},{}", opcode, r1, r2, r3)
 }
 
-fn fformat2x(opcode: String, x1: usize, f1: usize) -> String {
-    format!("{} {},{}", opcode, to_xname(x1), to_fname(f1),)
+fn format4(opcode: String, r1: &str, r2: &str, r3: &str, r4: &str) -> String {
+    format!("{} {},{},{},{}", opcode, r1, r2, r3, r4)
 }
 
-fn xformat3(opcode: String, x1: usize, x2: usize, x3: usize) -> String {
-    format!(
-        "{} {},{},{}",
-        opcode,
-        to_xname(x1),
-        to_xname(x2),
-        to_xname(x3),
-    )
+fn format_immediate(opcode: String, rd: &str, rs1: &str, imm: i64) -> String {
+    format!("{} {},{},0x{:x}({})", opcode, rd, rs1, imm, imm)
 }
 
-fn fformat3(opcode: String, f1: usize, f2: usize, f3: usize) -> String {
-    format!(
-        "{} {},{},{}",
-        opcode,
-        to_fname(f1),
-        to_fname(f2),
-        to_fname(f3),
-    )
+fn format_upper_immediate(opcode: String, rd: &str, imm: i64) -> String {
+    format!("{} {},0x{:x}", opcode, rd, imm)
 }
 
-fn fformat3x(opcode: String, x1: usize, f1: usize, f2: usize) -> String {
-    format!(
-        "{} {},{},{}",
-        opcode,
-        to_xname(x1),
-        to_fname(f1),
-        to_fname(f2),
-    )
-}
-
-fn fformat4(opcode: String, f1: usize, f2: usize, f3: usize, f4: usize) -> String {
-    format!(
-        "{} {},{},{},{}",
-        opcode,
-        to_fname(f1),
-        to_fname(f2),
-        to_fname(f3),
-        to_fname(f4),
-    )
-}
-
-fn xformat_immediate(opcode: String, x1: usize, x2: usize, imm: i64) -> String {
-    format!(
-        "{} {},{},0x{:x}({})",
-        opcode,
-        to_xname(x1),
-        to_xname(x2),
-        imm,
-        imm,
-    )
-}
-
-fn xformat_upper_immediate(opcode: String, x1: usize, imm: i64) -> String {
-    format!("{} {},0x{:x}", opcode, to_xname(x1), imm)
-}
-
-fn xformat_offset(opcode: String, x1: usize, offset: i64, x2: usize) -> String {
-    format!("{} {},{:X}({})", opcode, to_xname(x1), offset, to_xname(x2),)
-}
-
-fn fformat_offset(opcode: String, f1: usize, offset: i64, f2: usize) -> String {
-    format!("{} {},{:X}({})", opcode, to_fname(f1), offset, to_fname(f2),)
+fn format_offset(opcode: String, rd: &str, offset: i64, rs1: &str) -> String {
+    format!("{} {},{:x}({})", opcode, rd, offset, rs1)
 }
 
 pub struct Description {
