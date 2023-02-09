@@ -16,16 +16,16 @@ pub enum Rv32fOpcodeR {
     FsgnjxS,
     FminS,
     FmaxS,
-    FcvtWs,
+    FcvtWS,
     FcvtWuS,
-    FmvXw,
+    FmvXW,
     FeqS,
     FltS,
     FleS,
     FclassS,
-    FcvtSw,
+    FcvtSW,
     FcvtSWu,
-    FmvWx,
+    FmvWX,
 }
 
 impl fmt::Display for Rv32fOpcodeR {
@@ -45,16 +45,16 @@ impl fmt::Display for Rv32fOpcodeR {
             Self::FsgnjxS => f.write_str("fsgnjx.s"),
             Self::FminS => f.write_str("fmin.s"),
             Self::FmaxS => f.write_str("fmax.s"),
-            Self::FcvtWs => f.write_str("fcvt.w.s"),
+            Self::FcvtWS => f.write_str("fcvt.w.s"),
             Self::FcvtWuS => f.write_str("fcvt.wu.s"),
-            Self::FmvXw => f.write_str("fmv.x.w"),
+            Self::FmvXW => f.write_str("fmv.x.w"),
             Self::FeqS => f.write_str("feq.s"),
             Self::FltS => f.write_str("flt.s"),
             Self::FleS => f.write_str("fle.s"),
             Self::FclassS => f.write_str("fclass.s"),
-            Self::FcvtSw => f.write_str("fcvt.s.w"),
+            Self::FcvtSW => f.write_str("fcvt.s.w"),
             Self::FcvtSWu => f.write_str("fcvat.s.wu"),
-            Self::FmvWx => f.write_str("fmv.w.x"),
+            Self::FmvWX => f.write_str("fmv.w.x"),
         }
     }
 }

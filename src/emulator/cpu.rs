@@ -15,13 +15,13 @@ use crate::{
             csr::{ControlAndStatusRegister, Csr},
             decoder::{
                 privileged::PrivilegedDecoder, rv32f::Rv32fDecoder, rv32i::Rv32iDecoder,
-                rv32m::Rv32mDecoder, rv64i::Rv64iDecoder, rv64m::Rv64mDecoder, zicsr::ZicsrDecoder,
-                zifencei::ZifenceiDecoder, Decoder,
+                rv32m::Rv32mDecoder, rv64f::Rv64fDecoder, rv64i::Rv64iDecoder, rv64m::Rv64mDecoder,
+                zicsr::ZicsrDecoder, zifencei::ZifenceiDecoder, Decoder,
             },
             executor::{
                 privileged::PrivilegedExecutor, rv32f::Rv32fExecutor, rv32i::Rv32iExecutor,
-                rv32m::Rv32mExecutor, rv64i::Rv64iExecutor, rv64m::Rv64mExecutor,
-                zicsr::ZicsrExecutor, zifencei::ZifenceiExecutor, Executor,
+                rv32m::Rv32mExecutor, rv64f::Rv64fExecutor, rv64i::Rv64iExecutor,
+                rv64m::Rv64mExecutor, zicsr::ZicsrExecutor, zifencei::ZifenceiExecutor, Executor,
             },
             f::FloatingPointRegister,
             pc::ProgramCounter,
@@ -32,7 +32,10 @@ use crate::{
     isa::{
         csr::user_level::{CYCLE, INSTRET, TIME},
         description::Describer,
-        privileged::mode::PrivilegeMode,
+        privileged::{
+            cause::{Cause, Exception},
+            mode::PrivilegeMode,
+        },
         register::{fname, xname},
     },
 };
@@ -161,9 +164,21 @@ impl Cpu {
                     &mut self.csr,
                     &mut self.bus,
                 )
+            } else if let Some(decoded) = Rv64fDecoder::decode(instruction) {
+                if debug {
+                    println!("{:x}: {}", address, decoded.describe());
+                }
+                Rv64fExecutor::execute(
+                    decoded,
+                    &self.prv,
+                    &mut self.pc,
+                    &mut self.x,
+                    &mut self.f,
+                    &mut self.csr,
+                    &mut self.bus,
+                )
             } else {
-                // end the loop when unable to decode the instruction
-                break;
+                Err(Cause::Exception(Exception::IllegalInstruction))
             };
 
             if debug {
