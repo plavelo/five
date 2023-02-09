@@ -2,6 +2,7 @@ pub mod privileged;
 pub mod rv32f;
 pub mod rv32i;
 pub mod rv32m;
+pub mod rv64f;
 pub mod rv64i;
 pub mod rv64m;
 pub mod zicsr;
@@ -10,27 +11,27 @@ pub mod zifencei;
 use std::fmt;
 
 fn format2(opcode: String, r1: &str, r2: &str) -> String {
-    format!("{} {},{}", opcode, r1, r2)
+    format!("{opcode} {r1},{r2}")
 }
 
 fn format3(opcode: String, r1: &str, r2: &str, r3: &str) -> String {
-    format!("{} {},{},{}", opcode, r1, r2, r3)
+    format!("{opcode} {r1},{r2},{r3}")
 }
 
 fn format4(opcode: String, r1: &str, r2: &str, r3: &str, r4: &str) -> String {
-    format!("{} {},{},{},{}", opcode, r1, r2, r3, r4)
+    format!("{opcode} {r1},{r2},{r3},{r4}")
 }
 
 fn format_immediate(opcode: String, rd: &str, rs1: &str, imm: i64) -> String {
-    format!("{} {},{},0x{:x}({})", opcode, rd, rs1, imm, imm)
+    format!("{opcode} {rd},{rs1},0x{imm:x}({imm})")
 }
 
 fn format_upper_immediate(opcode: String, rd: &str, imm: i64) -> String {
-    format!("{} {},0x{:x}", opcode, rd, imm)
+    format!("{opcode} {rd},0x{imm:x}")
 }
 
 fn format_offset(opcode: String, rd: &str, offset: i64, rs1: &str) -> String {
-    format!("{} {},{:x}({})", opcode, rd, offset, rs1)
+    format!("{opcode} {rd},{offset:x}({rs1})")
 }
 
 pub struct Description {

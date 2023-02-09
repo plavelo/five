@@ -1,5 +1,5 @@
 use crate::{
-    bitops::{MASK_3BIT, MASK_5BIT},
+    bitops::{MASK_3BIT, MASK_5BIT, MASK_8BIT},
     emulator::cpu::csr::Csr,
     isa::csr::user_level::*,
 };
@@ -21,17 +21,19 @@ impl Csr for UserLevelCsr {
     fn write(&mut self, address: u64, value: u64) {
         match address {
             FFLAGS => {
-                *self.csr.get_mut(&FFLAGS).unwrap() = value;
-                *self.csr.get_mut(&FCSR).unwrap() = (self.csr[&FRM] << 5) & value;
+                let fflags = value & MASK_5BIT;
+                *self.csr.get_mut(&FFLAGS).unwrap() = fflags;
+                *self.csr.get_mut(&FCSR).unwrap() = ((self.csr[&FRM] << 5) | fflags) & MASK_8BIT;
             }
             FRM => {
-                *self.csr.get_mut(&FRM).unwrap() = value;
-                *self.csr.get_mut(&FCSR).unwrap() = (value << 5) & self.csr[&FFLAGS];
+                let frm = value & MASK_3BIT;
+                *self.csr.get_mut(&FRM).unwrap() = frm;
+                *self.csr.get_mut(&FCSR).unwrap() = (self.csr[&FFLAGS] | (frm << 5)) & MASK_8BIT;
             }
             FCSR => {
                 *self.csr.get_mut(&FFLAGS).unwrap() = value & MASK_5BIT;
                 *self.csr.get_mut(&FRM).unwrap() = (value >> 5) & MASK_3BIT;
-                *self.csr.get_mut(&FCSR).unwrap() = value;
+                *self.csr.get_mut(&FCSR).unwrap() = value & MASK_8BIT;
             }
             _ => {
                 *self.csr.get_mut(&address).unwrap() = value;

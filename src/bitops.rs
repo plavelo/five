@@ -2,6 +2,7 @@ pub const MASK_3BIT: u64 = 0b111;
 pub const MASK_4BIT: u64 = 0b1111;
 pub const MASK_5BIT: u64 = 0b11111;
 pub const MASK_6BIT: u64 = 0b111111;
+pub const MASK_8BIT: u64 = 0b11111111;
 pub const MASK_12BIT: u64 = 0b111111111111;
 
 pub fn extend_sign(value: u64, nbits: u32) -> i64 {

@@ -150,19 +150,19 @@ impl Describer
                         "fmax.s rd,rs1,rs2",
                         "f[rd] = max(f[rs1], f[rs2])",
                     ),
-                    Rv32fOpcodeR::FcvtWs => (
+                    Rv32fOpcodeR::FcvtWS => (
                         "Floating-point Convert to Word from Single",
-                        format2(opcode.to_string(), fname(rd), fname(rs1)),
+                        format2(opcode.to_string(), xname(rd), fname(rs1)),
                         "fcvt.w.s rd,rs1",
-                        "f[rd] = sext(f32_to_s32(f[rs1]))",
+                        "x[rd] = sext(f32_to_s32(f[rs1]))",
                     ),
                     Rv32fOpcodeR::FcvtWuS => (
                         "Floating-point Convert to unsigned Word from Single",
-                        format2(opcode.to_string(), fname(rd), fname(rs1)),
+                        format2(opcode.to_string(), xname(rd), fname(rs1)),
                         "fcvt.wu.s rd,rs1",
-                        "f[rd] = sext(f32_to_u32(f[rs1]))",
+                        "x[rd] = sext(f32_to_u32(f[rs1]))",
                     ),
-                    Rv32fOpcodeR::FmvXw => (
+                    Rv32fOpcodeR::FmvXW => (
                         "Floating-point Move Word to Integer",
                         format3(opcode.to_string(), xname(rd), fname(rs1), fname(rs2)),
                         "fmv.x.w rd,rs1",
@@ -172,7 +172,7 @@ impl Describer
                         "Floating-point Equals, Single-Precision",
                         format3(opcode.to_string(), fname(rd), fname(rs1), fname(rs2)),
                         "feq.s rd,rs1,rs2",
-                        "f[rd] = f[rs1] == f[rs2]",
+                        "x[rd] = f[rs1] == f[rs2]",
                     ),
                     Rv32fOpcodeR::FltS => (
                         "Floating-point Less Than, Single-Precision",
@@ -192,7 +192,7 @@ impl Describer
                         "fclass.s rd,rs1",
                         "x[rd] = classify_s(f[rs1])",
                     ),
-                    Rv32fOpcodeR::FcvtSw => (
+                    Rv32fOpcodeR::FcvtSW => (
                         "Floating-point Convert to Single from Word, Single-Precision",
                         format2(opcode.to_string(), fname(rd), fname(rs1)),
                         "fcvt.s.w rd,rs1",
@@ -200,11 +200,11 @@ impl Describer
                     ),
                     Rv32fOpcodeR::FcvtSWu => (
                         "Floating-point Convert to Single from Unsigned Word",
-                        format2(opcode.to_string(), fname(rd), fname(rs1)),
+                        format2(opcode.to_string(), fname(rd), xname(rs1)),
                         "fcvt.s.wu rd,rs1",
                         "f[rd] = u32_to_f32(x[rs1])",
                     ),
-                    Rv32fOpcodeR::FmvWx => (
+                    Rv32fOpcodeR::FmvWX => (
                         "Floating-point Move Word from Integer, Single-Precision",
                         format2(opcode.to_string(), fname(rd), fname(rs1)),
                         "fmv.w.x rd,rs1",

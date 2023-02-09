@@ -25,7 +25,7 @@ use crate::{
         },
     },
 };
-use rustc_apfloat::{ieee::Single, Float, Round, StatusAnd};
+use rustc_apfloat::{ieee::Single, Float, Round, Status, StatusAnd};
 
 fn convert_to_fflags(status: u8) -> u64 {
     let nv = status & 0b1; // Invalid Operation
@@ -34,6 +34,10 @@ fn convert_to_fflags(status: u8) -> u64 {
     let uf = (status >> 3) & 0b1; // Underflow
     let nx = (status >> 4) & 0b1; // Inexact
     ((nv << 4) | (dz << 3) | (of << 2) | (uf << 1) | nx) as u64
+}
+
+fn is_invalid(status: Status) -> bool {
+    status.bits() & 0b1 == 1 // Invalid Operation
 }
 
 trait StatusAndExt {
@@ -88,13 +92,13 @@ fn decode_rm(rm: usize) -> Option<Round> {
     }
 }
 
-fn encode_rm(round: Round) -> Option<u64> {
+fn encode_rm(round: Round) -> u64 {
     match round {
-        Round::NearestTiesToEven => Some(0b000),
-        Round::TowardZero => Some(0b001),
-        Round::TowardNegative => Some(0b010),
-        Round::TowardPositive => Some(0b011),
-        Round::NearestTiesToAway => Some(0b100),
+        Round::NearestTiesToEven => 0b000,
+        Round::TowardZero => 0b001,
+        Round::TowardNegative => 0b010,
+        Round::TowardPositive => 0b011,
+        Round::NearestTiesToAway => 0b100,
     }
 }
 
@@ -254,65 +258,125 @@ impl Executor for Rv32fExecutor {
                     }
                     Rv32fOpcodeR::FminS => {
                         // Accumulating CSRs: NV
-                        // However, it is not supported by the library
                         let val1 = Single::decode(f.reads(rs1));
                         let val2 = Single::decode(f.reads(rs2));
-                        let min = if val1 < val2 { val1 } else { val2 };
-                        f.writes(rd, min.bits());
-                        None
+                        let min = if val1.is_nan() && !val2.is_nan() {
+                            val2.bits()
+                        } else if !val1.is_nan() && val2.is_nan() {
+                            val1.bits()
+                        } else if val1.is_nan() && val2.is_nan() {
+                            0x7fc00000
+                        } else if val1.is_neg_zero() && val2.is_pos_zero() {
+                            val1.bits()
+                        } else if val1.is_pos_zero() && val2.is_neg_zero() {
+                            val2.bits()
+                        } else if val1 < val2 {
+                            val1.bits()
+                        } else {
+                            val2.bits()
+                        };
+                        f.writes(rd, min);
+                        let result = if val1.is_signaling() || val2.is_signaling() {
+                            0b10000
+                        } else {
+                            0
+                        };
+                        Some(result)
                     }
                     Rv32fOpcodeR::FmaxS => {
                         // Accumulating CSRs: NV
-                        // However, it is not supported by the library
                         let val1 = Single::decode(f.reads(rs1));
                         let val2 = Single::decode(f.reads(rs2));
-                        let max = if val1 < val2 { val2 } else { val1 };
-                        f.writes(rd, max.bits());
-                        None
+                        let max = if val1.is_nan() && !val2.is_nan() {
+                            val2.bits()
+                        } else if !val1.is_nan() && val2.is_nan() {
+                            val1.bits()
+                        } else if val1.is_nan() && val2.is_nan() {
+                            0x7fc00000
+                        } else if val1.is_neg_zero() && val2.is_pos_zero() {
+                            val2.bits()
+                        } else if val1.is_pos_zero() && val2.is_neg_zero() {
+                            val1.bits()
+                        } else if val1 < val2 {
+                            val2.bits()
+                        } else {
+                            val1.bits()
+                        };
+                        f.writes(rd, max);
+                        let result = if val1.is_signaling() || val2.is_signaling() {
+                            0b10000
+                        } else {
+                            0
+                        };
+                        Some(result)
                     }
-                    Rv32fOpcodeR::FcvtWs => {
+                    Rv32fOpcodeR::FcvtWS => {
                         // Accumulating CSRs: frm, NV, NX
-                        let result = Single::decode(f.reads(rs1)).to_u128_r(32, rm, &mut false);
-                        x.writei(rd, result.value as i64);
+                        let target = Single::decode(f.reads(rs1));
+                        let result = target.to_i128_r(32, rm, &mut false);
+                        let value = if is_invalid(result.status) && target.is_nan() {
+                            0x7fffffff
+                        } else {
+                            result.value as i32 as i64
+                        };
+                        x.writei(rd, value);
                         Some(convert_to_fflags(result.status.bits()))
                     }
                     Rv32fOpcodeR::FcvtWuS => {
                         // Accumulating CSRs: frm, NV, NX
-                        let result = Single::decode(f.reads(rs1)).to_u128_r(32, rm, &mut false);
-                        x.writei(rd, result.value as i32 as i64);
+                        let target = Single::decode(f.reads(rs1));
+                        let result = target.to_u128_r(32, rm, &mut false);
+                        let value = if is_invalid(result.status) && target.is_nan() {
+                            0xffffffffffffffffu64 as i64
+                        } else {
+                            result.value as i32 as i64
+                        };
+                        x.writei(rd, value);
                         Some(convert_to_fflags(result.status.bits()))
                     }
-                    Rv32fOpcodeR::FmvXw => {
+                    Rv32fOpcodeR::FmvXW => {
                         // Accumulating CSRs: None
                         x.writei(rd, extend_sign(f.reads(rs1) as u64, 32));
                         None
                     }
                     Rv32fOpcodeR::FeqS => {
                         // Accumulating CSRs: NV
-                        // However, it is not supported by the library
                         let val1 = Single::decode(f.reads(rs1));
                         let val2 = Single::decode(f.reads(rs2));
-                        let ret = u32::from(val1 == val2);
-                        f.writes(rd, ret);
-                        None
+                        let ret = u64::from(val1 == val2);
+                        x.writeu(rd, ret);
+                        let result = if val1.is_signaling() || val2.is_signaling() {
+                            0b10000
+                        } else {
+                            0
+                        };
+                        Some(result)
                     }
                     Rv32fOpcodeR::FltS => {
                         // Accumulating CSRs: NV
-                        // However, it is not supported by the library
                         let val1 = Single::decode(f.reads(rs1));
                         let val2 = Single::decode(f.reads(rs2));
-                        let ret = u32::from(val1 < val2);
-                        f.writes(rd, ret);
-                        None
+                        let ret = u64::from(val1 < val2);
+                        x.writeu(rd, ret);
+                        let result = if val1.is_nan() || val2.is_nan() {
+                            0b10000
+                        } else {
+                            0
+                        };
+                        Some(result)
                     }
                     Rv32fOpcodeR::FleS => {
                         // Accumulating CSRs: NV
-                        // However, it is not supported by the library
                         let val1 = Single::decode(f.reads(rs1));
                         let val2 = Single::decode(f.reads(rs2));
-                        let ret = u32::from(val1 <= val2);
-                        f.writes(rd, ret);
-                        None
+                        let ret = u64::from(val1 <= val2);
+                        x.writeu(rd, ret);
+                        let result = if val1.is_nan() || val2.is_nan() {
+                            0b10000
+                        } else {
+                            0
+                        };
+                        Some(result)
                     }
                     Rv32fOpcodeR::FclassS => {
                         // Accumulating CSRs: None
@@ -341,7 +405,7 @@ impl Executor for Rv32fExecutor {
                         x.writeu(rd, class);
                         None
                     }
-                    Rv32fOpcodeR::FcvtSw => {
+                    Rv32fOpcodeR::FcvtSW => {
                         // Accumulating CSRs: frm, NV, NX
                         let result = Single::from_i128_r(x.readi(rs1) as i32 as i128, rm);
                         f.writes(rd, result.bits());
@@ -349,17 +413,18 @@ impl Executor for Rv32fExecutor {
                     }
                     Rv32fOpcodeR::FcvtSWu => {
                         // Accumulating CSRs: frm, NV, NX
-                        let result = Single::from_u128_r(x.readi(rs1) as u128, rm);
+                        let result = Single::from_u128_r(x.readu(rs1) as u32 as u128, rm);
                         f.writes(rd, result.bits());
                         Some(result.fflags())
                     }
-                    Rv32fOpcodeR::FmvWx => {
+                    Rv32fOpcodeR::FmvWX => {
                         // Accumulating CSRs: None
                         f.writes(rd, x.readu(rs1) as u32);
                         None
                     }
                 };
-                if let (Some(fflags), Some(frm)) = (status, encode_rm(rm)) {
+                if let Some(fflags) = status {
+                    let frm = encode_rm(rm);
                     let fcsr = (frm << 5) | fflags;
                     csr.write(FCSR, fcsr);
                 }

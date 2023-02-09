@@ -28,7 +28,7 @@ impl Csr for ControlAndStatusRegister {
         if self.mcsr.contains(address) {
             return self.mcsr.read(address);
         }
-        panic!("address not found. {:x}", address);
+        panic!("address not found. {address:x}");
     }
 
     fn write(&mut self, address: u64, value: u64) {
@@ -41,7 +41,7 @@ impl Csr for ControlAndStatusRegister {
         if self.mcsr.contains(address) {
             return self.mcsr.write(address, value);
         }
-        panic!("address not found. {:x}", address);
+        panic!("address not found. {address:x}");
     }
 
     fn csrrw(&mut self, address: u64, value: u64) -> u64 {
@@ -54,7 +54,7 @@ impl Csr for ControlAndStatusRegister {
         if self.mcsr.contains(address) {
             return self.mcsr.csrrw(address, value);
         }
-        panic!("address not found. {:x}", address);
+        panic!("address not found. {address:x}");
     }
 
     fn csrrs(&mut self, address: u64, value: u64) -> u64 {
@@ -67,7 +67,7 @@ impl Csr for ControlAndStatusRegister {
         if self.mcsr.contains(address) {
             return self.mcsr.csrrs(address, value);
         }
-        panic!("address not found. {:x}", address);
+        panic!("address not found. {address:x}");
     }
 
     fn csrrc(&mut self, address: u64, value: u64) -> u64 {
@@ -80,7 +80,7 @@ impl Csr for ControlAndStatusRegister {
         if self.mcsr.contains(address) {
             return self.mcsr.csrrc(address, value);
         }
-        panic!("address not found. {:x}", address);
+        panic!("address not found. {address:x}");
     }
 }
 
